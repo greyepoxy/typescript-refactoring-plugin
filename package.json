@@ -1,0 +1,43 @@
+{
+  "name": "typescript-refactoring-plugin",
+  "version": "0.0.1",
+  "description": "A typescript refactoring language service plugin",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "npm run compile && npm run check",
+    "compile": "./node_modules/.bin/tsc -p .",
+    "check": "tslint -p .",
+    "fix": "npm run check -- --fix",
+    "watch:compile": "./node_modules/.bin/tsc --watch -p .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/greyepoxy/typescript-refactoring-plugin.git"
+  },
+  "keywords": [
+    "typescript"
+  ],
+  "author": "greyepoxy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/greyepoxy/typescript-refactoring-plugin/issues"
+  },
+  "homepage": "https://github.com/greyepoxy/typescript-refactoring-plugin#readme",
+  "dependencies": {
+    "@types/node": "^10.0.9",
+    "jasmine": "^3.1.0",
+    "prettier": "^1.12.1",
+    "tslint": "^5.10.0",
+    "tslint-config-prettier": "^1.12.0",
+    "tslint-plugin-prettier": "^1.3.0",
+    "typescript": "^2.8.3"
+  },
+  "files": [
+    "lib"
+  ],
+  "prettier": {
+    "printWidth": 120,
+    "singleQuote": true
+  }
+}
