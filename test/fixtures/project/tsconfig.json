@@ -3,7 +3,9 @@
     "target": "es2015",
     "module": "commonjs",
     "plugins": [
-      { "name": "../../../../lib" }
-    ]
+      { "name": "../.." }
+    ],
+    "types": [ ],
+    "strict": true,
   }
 }
