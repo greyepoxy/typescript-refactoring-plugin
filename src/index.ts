@@ -2,18 +2,13 @@
 // https://github.com/Microsoft/TypeScript/wiki/Writing-a-Language-Service-Plugin
 
 import * as ts_module from '../node_modules/typescript/lib/tsserverlibrary';
+import { GetLogger } from './logger';
 
 // tslint:disable-next-line:variable-name
 function init(_modules: { typescript: typeof ts_module }) {
-  // // const ts = modules.typescript;
-
   function create(info: ts.server.PluginCreateInfo) {
-    // Get a list of things to remove from the completion list from the config object.
-    // If nothing was specified, we'll just remove 'caller'
-    const whatToRemove: string[] = info.config.remove || ['caller'];
-
-    // Diagnostic logging
-    info.project.projectService.logger.info("I'm getting set up now! Check the log for this message.");
+    const logger = GetLogger(info);
+    logger.info(`I'm getting set up now!`);
 
     // Set up decorator
     const proxy: ts.LanguageService = Object.create(null);
@@ -22,21 +17,31 @@ function init(_modules: { typescript: typeof ts_module }) {
       proxy[k] = (...args: Array<{}>) => x.apply(info.languageService, args);
     }
 
-    // Remove specified entries from completion list
-    proxy.getCompletionsAtPosition = (fileName, position) => {
-      const prior = info.languageService.getCompletionsAtPosition(fileName, position, undefined);
-      const oldLength = prior.entries.length;
-      prior.entries = prior.entries.filter(e => whatToRemove.indexOf(e.name) < 0);
+    proxy.getApplicableRefactors = (fileName, positionOrRange) => {
+      const prior = info.languageService.getApplicableRefactors(fileName, positionOrRange);
 
-      // Sample logging for diagnostic purposes
-      if (oldLength !== prior.entries.length) {
-        info.project.projectService.logger.info(
-          `Removed ${oldLength - prior.entries.length} entries from the completion list`
-        );
+      // TODO: add some amazing refactoring here
+
+      return prior;
+    };
+
+    proxy.getEditsForRefactor = (fileName, formatOptions, positionOrRange, refactorName, actionName) => {
+      const prior = info.languageService.getEditsForRefactor(
+        fileName,
+        formatOptions,
+        positionOrRange,
+        refactorName,
+        actionName
+      );
+
+      if (prior === undefined) {
+        // TODO: handle the refactorings that I have added here
       }
 
       return prior;
     };
+
+    logger.info('setup!');
 
     return proxy;
   }

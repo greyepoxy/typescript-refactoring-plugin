@@ -40,7 +40,7 @@
     "lib/src"
   ],
   "prettier": {
-    "printWidth": 120,
+    "printWidth": 100,
     "singleQuote": true
   },
   "ava": {

@@ -64,7 +64,7 @@ class TSServer {
     return this;
   }
 
-  public getFirstResponseOfType(command: string): any[] {
+  public getFirstResponseOfType(command: string): any {
     const response = this.responses.find(serverResponse => serverResponse.command === command);
 
     if (response === undefined) {
@@ -74,7 +74,7 @@ class TSServer {
     return response;
   }
 
-  public getResponsesOfType(command: string): any {
+  public getResponsesOfType(command: string): any[] {
     return this.responses.filter(responseFromServer => responseFromServer.command === command);
   }
 }
