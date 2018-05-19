@@ -25,7 +25,13 @@ function init(_modules: { typescript: typeof ts_module }) {
       return prior;
     };
 
-    proxy.getEditsForRefactor = (fileName, formatOptions, positionOrRange, refactorName, actionName) => {
+    proxy.getEditsForRefactor = (
+      fileName,
+      formatOptions,
+      positionOrRange,
+      refactorName,
+      actionName
+    ) => {
       const prior = info.languageService.getEditsForRefactor(
         fileName,
         formatOptions,
