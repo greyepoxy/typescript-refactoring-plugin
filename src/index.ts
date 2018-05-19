@@ -1,11 +1,11 @@
 // TODO: put something real here for now just the example here
 // https://github.com/Microsoft/TypeScript/wiki/Writing-a-Language-Service-Plugin
 
-import * as ts_module from '../node_modules/typescript/lib/tsserverlibrary';
+import * as ts from 'typescript/lib/tsserverlibrary';
 import { GetLogger } from './logger';
 
 // tslint:disable-next-line:variable-name
-function init(_modules: { typescript: typeof ts_module }) {
+function init(_modules: { typescript: typeof ts }) {
   function create(info: ts.server.PluginCreateInfo) {
     const logger = GetLogger(info);
     logger.info(`I'm getting set up now!`);
