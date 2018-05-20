@@ -9,12 +9,15 @@ class TSServer {
   private isClosed: boolean;
   private server: ChildProcess;
   private seq: number;
+  private projectPath: string;
 
   constructor(project: string) {
+    this.projectPath = path.join(fixturesSrcDirPath, project);
+
     const logfile = path.join(fixturesLibDirPath, 'server', 'log.txt');
     const tsserverPath = path.join(appPath, 'node_modules', 'typescript', 'lib', 'tsserver');
     const server = fork(tsserverPath, ['--logVerbosity', 'verbose', '--logFile', logfile], {
-      cwd: path.join(fixturesSrcDirPath, project),
+      cwd: this.projectPath,
       stdio: ['pipe', 'pipe', 'pipe', 'ipc']
     });
     this.exitPromise = new Promise((resolve, reject) => {
@@ -57,7 +60,8 @@ class TSServer {
       arguments: {
         file: filePathFromPrjCwd,
         fileContent,
-        scriptKindName: 'TS'
+        scriptKindName: 'TS',
+        projectRootPath: this.projectPath
       },
       command: 'open'
     });
