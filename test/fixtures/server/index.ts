@@ -1,7 +1,8 @@
 import { ChildProcess, fork } from 'child_process';
 import * as path from 'path';
 import * as readline from 'readline';
-import { appPath, fixturesLibDirPath, fixturesSrcDirPath } from '../../paths';
+import * as ts from 'typescript/lib/tsserverlibrary';
+import { appPath, fixturesLibDirPath } from '../../paths';
 
 class TSServer {
   public responses: any[];
@@ -9,17 +10,26 @@ class TSServer {
   private isClosed: boolean;
   private server: ChildProcess;
   private seq: number;
-  private projectPath: string;
 
-  constructor(project: string) {
-    this.projectPath = path.join(fixturesSrcDirPath, project);
-
-    const logfile = path.join(fixturesLibDirPath, 'server', 'log.txt');
+  constructor() {
+    const projectRoot = path.join(fixturesLibDirPath, 'server');
+    const logfile = path.join(projectRoot, 'log.txt');
     const tsserverPath = path.join(appPath, 'node_modules', 'typescript', 'lib', 'tsserver');
-    const server = fork(tsserverPath, ['--logVerbosity', 'verbose', '--logFile', logfile], {
-      cwd: this.projectPath,
-      stdio: ['pipe', 'pipe', 'pipe', 'ipc']
-    });
+    const server = fork(
+      tsserverPath,
+      [
+        '--logVerbosity',
+        'verbose',
+        '--logFile',
+        logfile,
+        '--globalPlugins',
+        path.resolve(__dirname, '../../../../')
+      ],
+      {
+        cwd: projectRoot,
+        stdio: ['pipe', 'pipe', 'pipe', 'ipc']
+      }
+    );
     this.exitPromise = new Promise((resolve, reject) => {
       server.on('exit', code => resolve(code));
       server.on('error', reason => reject(reason));
@@ -39,6 +49,18 @@ class TSServer {
     this.server = server;
     this.seq = 0;
     this.responses = [];
+
+    this.send({
+      command: 'compilerOptionsForInferredProjects',
+      arguments: {
+        options: {
+          target: ts.server.protocol.ScriptTarget.ES2015,
+          module: ts.server.protocol.ModuleKind.CommonJS,
+          types: [],
+          strict: true
+        }
+      }
+    });
   }
 
   public send(command: { command: string; arguments: object }) {
@@ -60,8 +82,7 @@ class TSServer {
       arguments: {
         file: filePathFromPrjCwd,
         fileContent,
-        scriptKindName: 'TS',
-        projectRootPath: this.projectPath
+        scriptKindName: 'TS'
       },
       command: 'open'
     });
@@ -83,6 +104,6 @@ class TSServer {
   }
 }
 
-export function create(project?: string) {
-  return new TSServer(project || 'project');
+export function create() {
+  return new TSServer();
 }

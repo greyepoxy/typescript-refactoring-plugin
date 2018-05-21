@@ -1,3 +1,5 @@
+import * as tsutils from 'tsutils';
+import * as ts from 'typescript';
 import { Logger } from '../logger';
 
 export const name = 'Simplify Conditional';
@@ -13,6 +15,10 @@ export const conditionalAlwaysTrueRefactoring: ts.ApplicableRefactorInfo = {
     }
   ]
 };
+
+function formatLineAndChar(lineAndChar: ts.LineAndCharacter): string {
+  return `(${lineAndChar.line}, ${lineAndChar.character})`;
+}
 
 export function getApplicableRefactors(
   languageService: ts.LanguageService,
@@ -30,9 +36,28 @@ export function getApplicableRefactors(
     return [];
   }
 
-  const result = sourceFile.getChildAt(startPos);
+  const token = tsutils.getTokenAtPosition(sourceFile, startPos);
 
-  logger.info(result.getText());
+  if (token === undefined || token.parent === undefined) {
+    logger.error(`No token at given position ${startPos}`);
+    return [];
+  }
+
+  const node = token.parent;
+
+  if (ts.isBinaryExpression(node)) {
+    if (
+      node.left.kind === ts.SyntaxKind.TrueKeyword &&
+      node.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken &&
+      node.right.kind === ts.SyntaxKind.TrueKeyword
+    ) {
+      const start = formatLineAndChar(sourceFile.getLineAndCharacterOfPosition(node.pos));
+      const end = formatLineAndChar(sourceFile.getLineAndCharacterOfPosition(node.end));
+      logger.info(`Can simplify tautology '${node.getText()}' at [${start}, ${end}]`);
+
+      return [conditionalAlwaysTrueRefactoring];
+    }
+  }
 
   return [];
 }

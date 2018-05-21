@@ -24,8 +24,6 @@ export function create(info: ts.server.PluginCreateInfo): ts.LanguageService {
   proxy.getApplicableRefactors = (fileName, positionOrRange) => {
     const prior = oldLS.getApplicableRefactors(fileName, positionOrRange);
 
-    logger.info('super test');
-
     return prior.concat(getApplicableRefactors(oldLS, logger, fileName, positionOrRange));
   };
 

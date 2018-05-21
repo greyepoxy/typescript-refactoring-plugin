@@ -7,8 +7,6 @@ export function getApplicableRefactors(
   fileName: string,
   positionOrRange: number | ts.TextRange
 ): ts.ApplicableRefactorInfo[] {
-  logger.info('test');
-
   const refactoringInfo = ([] as ts.ApplicableRefactorInfo[]).concat(
     getApplicableSimplifyConditionalRefactors(languageService, logger, fileName, positionOrRange)
   );
