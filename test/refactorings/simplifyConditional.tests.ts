@@ -1,23 +1,23 @@
 import { test } from 'ava';
-import { conditionalAlwaysTrueRefactoring } from '../../src/refactorings/simplifyConditional';
-import { create as createServer } from '../fixtures/server/index';
+import {
+  conditionalAlwaysTrueRefactoring,
+  getApplicableRefactors
+} from '../../src/refactorings/simplifyConditional';
+import { GetMockLogger, GetProgram } from './mockLanguageService';
 
 const mockFileName = 'main.ts';
 
 test('should be able to simplify a Tautology', t => {
-  const server = createServer();
-  server.openMockFile(mockFileName, `const some = true && true;`);
-  server.send({
-    command: 'getApplicableRefactors',
-    arguments: { file: mockFileName, line: 1, offset: 14 }
+  const program = GetProgram({
+    path: mockFileName,
+    contents: `const some = true && true;`,
+    scriptKindName: 'TS'
   });
 
-  return server.close().then(() => {
-    const completionsResponse = server.getFirstResponseOfType('getApplicableRefactors');
-    t.not(completionsResponse, undefined);
-    t.is(completionsResponse.body.length, 1);
-    t.deepEqual(completionsResponse.body[0], conditionalAlwaysTrueRefactoring);
-  });
+  const result = getApplicableRefactors(program, GetMockLogger(), mockFileName, 14);
+
+  t.not(result[0], undefined);
+  t.deepEqual(result[0], conditionalAlwaysTrueRefactoring);
 });
 
 // TODO: implement the rest of the simplifications described here

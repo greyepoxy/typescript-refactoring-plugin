@@ -1,5 +1,5 @@
 import * as tsutils from 'tsutils';
-import * as ts from 'typescript';
+import * as ts from 'typescript/lib/tsserverlibrary';
 import { Logger } from '../logger';
 
 export const name = 'Simplify Conditional';
@@ -21,14 +21,12 @@ function formatLineAndChar(lineAndChar: ts.LineAndCharacter): string {
 }
 
 export function getApplicableRefactors(
-  languageService: ts.LanguageService,
+  program: ts.Program,
   logger: Logger,
   fileName: string,
   positionOrRange: number | ts.TextRange
 ): ts.ApplicableRefactorInfo[] {
   const startPos = typeof positionOrRange === 'number' ? positionOrRange : positionOrRange.pos;
-
-  const program = languageService.getProgram();
 
   const sourceFile = program.getSourceFile(fileName);
   if (sourceFile === undefined) {

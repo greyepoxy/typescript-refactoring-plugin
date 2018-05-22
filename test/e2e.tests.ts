@@ -3,7 +3,7 @@ import { create as createServer } from './fixtures/server/index';
 
 const mockFileName = 'main.ts';
 
-test('built in extract function/constant should still work', t => {
+test('[e2e] built in extract function/constant should still work', t => {
   const server = createServer();
   server.openMockFile(mockFileName, `const q = 5;`);
   server.send({
@@ -19,5 +19,21 @@ test('built in extract function/constant should still work', t => {
     t.is(completionsResponse.body[0].actions[0].name, 'function_scope_0');
     t.is(completionsResponse.body[1].name, 'Extract Symbol');
     t.is(completionsResponse.body[1].actions[0].name, 'constant_scope_0');
+  });
+});
+
+test('[e2e] should return plugin defined refactorings', t => {
+  const server = createServer();
+  server.openMockFile(mockFileName, `const some = true && true;`);
+  server.send({
+    command: 'getApplicableRefactors',
+    arguments: { file: mockFileName, line: 1, offset: 14 }
+  });
+
+  return server.close().then(() => {
+    const completionsResponse = server.getFirstResponseOfType('getApplicableRefactors');
+    t.not(completionsResponse, undefined);
+    t.is(completionsResponse.body.length, 1);
+    t.deepEqual(completionsResponse.body[0].name, 'Simplify Conditional');
   });
 });
