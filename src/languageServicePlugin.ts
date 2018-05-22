@@ -16,8 +16,8 @@ export function create(info: ts.server.PluginCreateInfo): ts.LanguageService {
   const oldLS = info.languageService;
   // tslint:disable-next-line:forin
   for (const k in oldLS) {
-    (proxy as any)[k] = () => {
-      return (oldLS as any)[k].apply(oldLS);
+    (proxy as any)[k] = (...args: Array<{}>) => {
+      return (oldLS as any)[k].apply(oldLS, args);
     };
   }
 
