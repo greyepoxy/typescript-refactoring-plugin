@@ -10,7 +10,7 @@
     "fix": "npm run check -- --fix",
     "test": "ava",
     "watch:compile": "./node_modules/.bin/tsc --watch -p .",
-    "watch:test": "npm run test -- --watch -m ![e2e]*",
+    "watch:test": "npm run test -- --watch",
     "watch": "run-p watch:**"
   },
   "repository": {
@@ -48,10 +48,12 @@
   },
   "ava": {
     "files": [
-      "lib/test/**/*tests.js"
+      "lib/**/*tests.js"
     ],
-    "sources": [
-      "lib/**/*.{js}"
+    "source": [
+      "lib/**/*.js",
+      "!lib/**/*.log",
+      "!lib/**/log.txt"
     ],
     "concurrency": 5
   }
