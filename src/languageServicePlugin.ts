@@ -3,7 +3,7 @@
 
 import * as ts from 'typescript/lib/tsserverlibrary';
 import { GetLogger } from './logger';
-import { getApplicableRefactors } from './refactorings/refactorings';
+import { getApplicableRefactors, getEditsForRefactor } from './refactorings/refactorings';
 
 export function create(info: ts.server.PluginCreateInfo): ts.LanguageService {
   const logger = GetLogger(info.project);
@@ -42,11 +42,19 @@ export function create(info: ts.server.PluginCreateInfo): ts.LanguageService {
       actionName
     );
 
-    if (prior === undefined) {
-      // TODO: handle the refactorings that I have added here
+    if (prior !== undefined) {
+      return prior;
     }
 
-    return prior;
+    return getEditsForRefactor(
+      oldLS,
+      logger,
+      fileName,
+      formatOptions,
+      positionOrRange,
+      refactorName,
+      actionName
+    );
   };
 
   return proxy;

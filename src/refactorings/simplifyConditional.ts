@@ -59,3 +59,66 @@ export function getApplicableRefactors(
 
   return [];
 }
+
+export function getEditsForRefactor(
+  program: ts.Program,
+  logger: Logger,
+  fileName: string,
+  // tslint:disable-next-line:variable-name
+  _formatOptions: ts.FormatCodeSettings,
+  positionOrRange: number | ts.TextRange,
+  refactorName: string,
+  actionName: string
+): ts.RefactorEditInfo | undefined {
+  if (refactorName !== name) {
+    return undefined;
+  }
+
+  if (actionName === conditionalAlwaysTrueAction) {
+    const startPos = typeof positionOrRange === 'number' ? positionOrRange : positionOrRange.pos;
+
+    const sourceFile = program.getSourceFile(fileName);
+    if (sourceFile === undefined) {
+      logger.error(`cannot load source file ${fileName}`);
+      return undefined;
+    }
+
+    const token = tsutils.getTokenAtPosition(sourceFile, startPos);
+
+    if (token === undefined || token.parent === undefined) {
+      logger.error(`No token at given position ${startPos}`);
+      return undefined;
+    }
+
+    const node = token.parent;
+
+    if (ts.isBinaryExpression(node)) {
+      if (
+        node.left.kind === ts.SyntaxKind.TrueKeyword &&
+        node.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken &&
+        node.right.kind === ts.SyntaxKind.TrueKeyword
+      ) {
+        return {
+          edits: [
+            {
+              fileName: sourceFile.fileName,
+              textChanges: [
+                {
+                  span: { start: node.left.pos, length: node.right.end - node.left.pos },
+                  newText: 'true'
+                }
+              ]
+            }
+          ],
+          renameFilename: undefined,
+          renameLocation: undefined
+        };
+      }
+    }
+
+    logger.error(`Unable to perform requested ${refactorName} action ${actionName}`);
+  }
+
+  logger.error(`Recieved request to perform unknown ${refactorName} action ${actionName}`);
+  return undefined;
+}
