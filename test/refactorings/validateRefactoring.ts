@@ -42,7 +42,7 @@ function validateRefactoringIsPresent(
 
   if (expectedRefactoring === undefined) {
     t.log(refactorings);
-    t.fail(`Expected refactoring ${expected.name} to be an option but it was not.`);
+    t.fail(`Expected refactoring '${expected.name}' to be an option but it was not.`);
     return;
   }
 
@@ -53,9 +53,9 @@ function validateRefactoringIsPresent(
   if (expectedAction === undefined) {
     t.log(expectedRefactoring);
     t.fail(
-      `Expected refactoring ${expected.name} with action name ${
+      `Expected refactoring '${expected.name}' with action name '${
         expected.actionName
-      } to be an option but it was not.`
+      }' to be an option but it was not.`
     );
     return;
   }

@@ -6,7 +6,7 @@ import {
 } from '../../src/refactorings/simplifyConditional';
 import { validateRefactoring } from './validateRefactoring';
 
-test(`should be able to simplify a 'true && true' Tautology`, t => {
+test(`should be able to simplify 'true && true' Tautology`, t => {
   validateRefactoring(
     `const some = [||]true && true;`,
     getApplicableRefactors,
@@ -20,9 +20,23 @@ test(`should be able to simplify a 'true && true' Tautology`, t => {
   );
 });
 
-test(`should be able to simplify a 'true && a' Tautology`, t => {
+test(`should be able to simplify 'true && a' Tautology`, t => {
   validateRefactoring(
     `const some = [||]true && a;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyConditionalRefactoring.name,
+      actionName: simplifyConditionalRefactoring.actions[0].name
+    },
+    `const some = a;`,
+    t
+  );
+});
+
+test(`should be able to simplify 'a && true' Tautology`, t => {
+  validateRefactoring(
+    `const some = [||]a && true;`,
     getApplicableRefactors,
     getEditsForRefactor,
     {

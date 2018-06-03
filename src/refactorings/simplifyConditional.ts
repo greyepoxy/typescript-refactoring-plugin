@@ -63,7 +63,7 @@ export function getApplicableRefactors(
   }
 
   if (
-    booleanExpression.left.kind === ts.SyntaxKind.TrueKeyword &&
+    (booleanExpression.left.kind === ts.SyntaxKind.TrueKeyword || booleanExpression.right.kind) &&
     booleanExpression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken
   ) {
     const start = formatLineAndChar(
@@ -106,9 +106,14 @@ export function getEditsForRefactor(
     }
 
     if (
-      booleanExpression.left.kind === ts.SyntaxKind.TrueKeyword &&
+      (booleanExpression.left.kind === ts.SyntaxKind.TrueKeyword || booleanExpression.right.kind) &&
       booleanExpression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken
     ) {
+      const expressionToKeep =
+        booleanExpression.left.kind === ts.SyntaxKind.TrueKeyword
+          ? booleanExpression.right
+          : booleanExpression.left;
+
       return {
         edits: [
           {
@@ -119,7 +124,7 @@ export function getEditsForRefactor(
                   start: booleanExpression.left.pos,
                   length: booleanExpression.right.end - booleanExpression.left.pos
                 },
-                newText: booleanExpression.right.getFullText()
+                newText: expressionToKeep.getFullText()
               }
             ]
           }
