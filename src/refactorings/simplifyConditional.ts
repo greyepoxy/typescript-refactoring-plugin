@@ -56,25 +56,21 @@ export function getApplicableRefactors(
     return [];
   }
 
-  const maybeBinaryExpression = tryGetTargetExpression(logger, sourceFile, positionOrRange);
+  const booleanExpression = tryGetTargetExpression(logger, sourceFile, positionOrRange);
 
-  if (maybeBinaryExpression == null) {
+  if (booleanExpression == null) {
     return [];
   }
 
   if (
-    maybeBinaryExpression.left.kind === ts.SyntaxKind.TrueKeyword &&
-    maybeBinaryExpression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken
+    booleanExpression.left.kind === ts.SyntaxKind.TrueKeyword &&
+    booleanExpression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken
   ) {
     const start = formatLineAndChar(
-      sourceFile.getLineAndCharacterOfPosition(maybeBinaryExpression.pos)
+      sourceFile.getLineAndCharacterOfPosition(booleanExpression.pos)
     );
-    const end = formatLineAndChar(
-      sourceFile.getLineAndCharacterOfPosition(maybeBinaryExpression.end)
-    );
-    logger.info(
-      `Can simplify tautology '${maybeBinaryExpression.getText()}' at [${start}, ${end}]`
-    );
+    const end = formatLineAndChar(sourceFile.getLineAndCharacterOfPosition(booleanExpression.end));
+    logger.info(`Can simplify tautology '${booleanExpression.getText()}' at [${start}, ${end}]`);
 
     return [simplifyConditionalRefactoring];
   }
@@ -103,15 +99,15 @@ export function getEditsForRefactor(
       return undefined;
     }
 
-    const maybeBinaryExpression = tryGetTargetExpression(logger, sourceFile, positionOrRange);
+    const booleanExpression = tryGetTargetExpression(logger, sourceFile, positionOrRange);
 
-    if (maybeBinaryExpression == null) {
+    if (booleanExpression == null) {
       return undefined;
     }
 
     if (
-      maybeBinaryExpression.left.kind === ts.SyntaxKind.TrueKeyword &&
-      maybeBinaryExpression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken
+      booleanExpression.left.kind === ts.SyntaxKind.TrueKeyword &&
+      booleanExpression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken
     ) {
       return {
         edits: [
@@ -120,10 +116,10 @@ export function getEditsForRefactor(
             textChanges: [
               {
                 span: {
-                  start: maybeBinaryExpression.left.pos,
-                  length: maybeBinaryExpression.right.end - maybeBinaryExpression.left.pos
+                  start: booleanExpression.left.pos,
+                  length: booleanExpression.right.end - booleanExpression.left.pos
                 },
-                newText: maybeBinaryExpression.right.getFullText()
+                newText: booleanExpression.right.getFullText()
               }
             ]
           }
