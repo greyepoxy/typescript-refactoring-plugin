@@ -64,8 +64,7 @@ export function getApplicableRefactors(
 
   if (
     maybeBinaryExpression.left.kind === ts.SyntaxKind.TrueKeyword &&
-    maybeBinaryExpression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken &&
-    maybeBinaryExpression.right.kind === ts.SyntaxKind.TrueKeyword
+    maybeBinaryExpression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken
   ) {
     const start = formatLineAndChar(
       sourceFile.getLineAndCharacterOfPosition(maybeBinaryExpression.pos)
@@ -112,8 +111,7 @@ export function getEditsForRefactor(
 
     if (
       maybeBinaryExpression.left.kind === ts.SyntaxKind.TrueKeyword &&
-      maybeBinaryExpression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken &&
-      maybeBinaryExpression.right.kind === ts.SyntaxKind.TrueKeyword
+      maybeBinaryExpression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken
     ) {
       return {
         edits: [
@@ -125,7 +123,7 @@ export function getEditsForRefactor(
                   start: maybeBinaryExpression.left.pos,
                   length: maybeBinaryExpression.right.end - maybeBinaryExpression.left.pos
                 },
-                newText: 'true'
+                newText: maybeBinaryExpression.right.getText()
               }
             ]
           }
