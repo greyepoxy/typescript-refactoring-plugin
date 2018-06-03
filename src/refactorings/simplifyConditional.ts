@@ -3,15 +3,16 @@ import * as ts from 'typescript/lib/tsserverlibrary';
 import { Logger } from '../logger';
 
 export const name = 'Simplify Conditional';
-export const conditionalAlwaysTrueAction = 'conditional_always_true';
+export const removeAlwaysTrueFromConjuctionExpression =
+  'remove_always_true_proposition_from_and_boolean_expression';
 
 export const conditionalAlwaysTrueRefactoring: ts.ApplicableRefactorInfo = {
   name,
   description: 'Simplify this conditional',
   actions: [
     {
-      name: conditionalAlwaysTrueAction,
-      description: 'Simplify always true conditional'
+      name: removeAlwaysTrueFromConjuctionExpression,
+      description: 'Remove always true proposition from boolean expression conjunction.'
     }
   ]
 };
@@ -74,7 +75,7 @@ export function getEditsForRefactor(
     return undefined;
   }
 
-  if (actionName === conditionalAlwaysTrueAction) {
+  if (actionName === removeAlwaysTrueFromConjuctionExpression) {
     const startPos = typeof positionOrRange === 'number' ? positionOrRange : positionOrRange.pos;
 
     const sourceFile = program.getSourceFile(fileName);
