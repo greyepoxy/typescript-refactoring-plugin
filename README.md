@@ -26,4 +26,5 @@ Currently working on boolean expression related refactorings. Things like simpli
 
 ## TODO
 
-Create a vs-code plugin that bundles this language service plugin so that it can be installed directly as an extension. An example of how to do this is [here](https://github.com/Microsoft/typescript-styled-plugin/issues/10).
+1. Create a vs-code plugin that bundles this language service plugin so that it can be installed directly as an extension. An example of how to do this is [here](https://github.com/Microsoft/typescript-styled-plugin/issues/10).
+1. Setup CI
