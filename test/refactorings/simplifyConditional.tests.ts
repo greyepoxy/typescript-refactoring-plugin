@@ -8,15 +8,48 @@ import { GetMockLogger, GetProgram } from './mockLanguageService';
 
 const mockFileName = 'main.ts';
 
+interface TextSelection {
+  pos: number;
+  end: number;
+}
+
+function parseInputFileForSelection(fileContents: string): TextSelection | null {
+  const selectionRegex = /\[\|.*\|\]/s;
+
+  const match = selectionRegex.exec(fileContents);
+  if (match == null) {
+    return null;
+  }
+
+  return {
+    pos: match.index,
+    end: selectionRegex.lastIndex
+  };
+}
+
+function removeSelectionFromFile(fileContents: string): string {
+  return fileContents.replace('[|', '').replace('|]', '');
+}
+
 test(`should be able to simplify a 'true && true' Tautology`, t => {
+  const fileContents = `const some = [||]true && true;`;
+  const textSelelection = parseInputFileForSelection(fileContents);
+
+  if (textSelelection == null) {
+    throw new Error(`Expected input file to have some text selected (using '[|...|]')'`);
+  }
+
   const program = GetProgram({
     path: mockFileName,
-    contents: `const some = true && true;`,
+    contents: removeSelectionFromFile(fileContents),
     scriptKindName: 'TS'
   });
   const logger = GetMockLogger();
 
-  const refactoring = getApplicableRefactors(program, logger, mockFileName, 14);
+  const inputTextRange =
+    textSelelection.pos === textSelelection.end ? textSelelection.pos : textSelelection;
+
+  const refactoring = getApplicableRefactors(program, logger, mockFileName, inputTextRange);
 
   t.not(refactoring[0], undefined);
   t.deepEqual(refactoring[0], simplifyConditionalRefactoring);
@@ -40,14 +73,24 @@ test(`should be able to simplify a 'true && true' Tautology`, t => {
 });
 
 test(`should be able to simplify a 'true && a' Tautology`, t => {
+  const fileContents = `const some = [||]true && a;`;
+  const textSelelection = parseInputFileForSelection(fileContents);
+
+  if (textSelelection == null) {
+    throw new Error(`Expected input file to have some text selected (using '[|...|]')'`);
+  }
+
   const program = GetProgram({
     path: mockFileName,
-    contents: `const some = true && a;`,
+    contents: removeSelectionFromFile(fileContents),
     scriptKindName: 'TS'
   });
   const logger = GetMockLogger();
 
-  const refactoring = getApplicableRefactors(program, logger, mockFileName, 14);
+  const inputTextRange =
+    textSelelection.pos === textSelelection.end ? textSelelection.pos : textSelelection;
+
+  const refactoring = getApplicableRefactors(program, logger, mockFileName, inputTextRange);
 
   t.not(refactoring[0], undefined);
   t.deepEqual(refactoring[0], simplifyConditionalRefactoring);
