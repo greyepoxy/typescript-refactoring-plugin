@@ -6,7 +6,7 @@ export const name = 'Simplify Conditional';
 export const removeAlwaysTrueFromConjuctionExpression =
   'remove_always_true_proposition_from_and_boolean_expression';
 
-export const conditionalAlwaysTrueRefactoring: ts.ApplicableRefactorInfo = {
+export const simplifyConditionalRefactoring: ts.ApplicableRefactorInfo = {
   name,
   description: 'Simplify this conditional',
   actions: [
@@ -21,41 +21,63 @@ function formatLineAndChar(lineAndChar: ts.LineAndCharacter): string {
   return `(${lineAndChar.line}, ${lineAndChar.character})`;
 }
 
+function tryGetTargetExpression(
+  logger: Logger,
+  sourceFile: ts.SourceFile,
+  positionOrRange: number | ts.TextRange
+): ts.BinaryExpression | null {
+  const startPos = typeof positionOrRange === 'number' ? positionOrRange : positionOrRange.pos;
+
+  const token = tsutils.getTokenAtPosition(sourceFile, startPos);
+
+  if (token === undefined || token.parent === undefined) {
+    logger.error(`No token at given position ${startPos}`);
+    return null;
+  }
+
+  const node = token.parent;
+
+  if (ts.isBinaryExpression(node)) {
+    return node;
+  }
+
+  return null;
+}
+
 export function getApplicableRefactors(
   program: ts.Program,
   logger: Logger,
   fileName: string,
   positionOrRange: number | ts.TextRange
 ): ts.ApplicableRefactorInfo[] {
-  const startPos = typeof positionOrRange === 'number' ? positionOrRange : positionOrRange.pos;
-
   const sourceFile = program.getSourceFile(fileName);
   if (sourceFile === undefined) {
     logger.error(`cannot load source file ${fileName}`);
     return [];
   }
 
-  const token = tsutils.getTokenAtPosition(sourceFile, startPos);
+  const maybeBinaryExpression = tryGetTargetExpression(logger, sourceFile, positionOrRange);
 
-  if (token === undefined || token.parent === undefined) {
-    logger.error(`No token at given position ${startPos}`);
+  if (maybeBinaryExpression == null) {
     return [];
   }
 
-  const node = token.parent;
+  if (
+    maybeBinaryExpression.left.kind === ts.SyntaxKind.TrueKeyword &&
+    maybeBinaryExpression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken &&
+    maybeBinaryExpression.right.kind === ts.SyntaxKind.TrueKeyword
+  ) {
+    const start = formatLineAndChar(
+      sourceFile.getLineAndCharacterOfPosition(maybeBinaryExpression.pos)
+    );
+    const end = formatLineAndChar(
+      sourceFile.getLineAndCharacterOfPosition(maybeBinaryExpression.end)
+    );
+    logger.info(
+      `Can simplify tautology '${maybeBinaryExpression.getText()}' at [${start}, ${end}]`
+    );
 
-  if (ts.isBinaryExpression(node)) {
-    if (
-      node.left.kind === ts.SyntaxKind.TrueKeyword &&
-      node.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken &&
-      node.right.kind === ts.SyntaxKind.TrueKeyword
-    ) {
-      const start = formatLineAndChar(sourceFile.getLineAndCharacterOfPosition(node.pos));
-      const end = formatLineAndChar(sourceFile.getLineAndCharacterOfPosition(node.end));
-      logger.info(`Can simplify tautology '${node.getText()}' at [${start}, ${end}]`);
-
-      return [conditionalAlwaysTrueRefactoring];
-    }
+    return [simplifyConditionalRefactoring];
   }
 
   return [];
@@ -76,48 +98,45 @@ export function getEditsForRefactor(
   }
 
   if (actionName === removeAlwaysTrueFromConjuctionExpression) {
-    const startPos = typeof positionOrRange === 'number' ? positionOrRange : positionOrRange.pos;
-
     const sourceFile = program.getSourceFile(fileName);
     if (sourceFile === undefined) {
       logger.error(`cannot load source file ${fileName}`);
       return undefined;
     }
 
-    const token = tsutils.getTokenAtPosition(sourceFile, startPos);
+    const maybeBinaryExpression = tryGetTargetExpression(logger, sourceFile, positionOrRange);
 
-    if (token === undefined || token.parent === undefined) {
-      logger.error(`No token at given position ${startPos}`);
+    if (maybeBinaryExpression == null) {
       return undefined;
     }
 
-    const node = token.parent;
-
-    if (ts.isBinaryExpression(node)) {
-      if (
-        node.left.kind === ts.SyntaxKind.TrueKeyword &&
-        node.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken &&
-        node.right.kind === ts.SyntaxKind.TrueKeyword
-      ) {
-        return {
-          edits: [
-            {
-              fileName: sourceFile.fileName,
-              textChanges: [
-                {
-                  span: { start: node.left.pos, length: node.right.end - node.left.pos },
-                  newText: 'true'
-                }
-              ]
-            }
-          ],
-          renameFilename: undefined,
-          renameLocation: undefined
-        };
-      }
+    if (
+      maybeBinaryExpression.left.kind === ts.SyntaxKind.TrueKeyword &&
+      maybeBinaryExpression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken &&
+      maybeBinaryExpression.right.kind === ts.SyntaxKind.TrueKeyword
+    ) {
+      return {
+        edits: [
+          {
+            fileName: sourceFile.fileName,
+            textChanges: [
+              {
+                span: {
+                  start: maybeBinaryExpression.left.pos,
+                  length: maybeBinaryExpression.right.end - maybeBinaryExpression.left.pos
+                },
+                newText: 'true'
+              }
+            ]
+          }
+        ],
+        renameFilename: undefined,
+        renameLocation: undefined
+      };
     }
 
     logger.error(`Unable to perform requested ${refactorName} action ${actionName}`);
+    return undefined;
   }
 
   logger.error(`Recieved request to perform unknown ${refactorName} action ${actionName}`);

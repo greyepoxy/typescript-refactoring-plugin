@@ -1,8 +1,8 @@
 import { test } from 'ava';
 import {
-  conditionalAlwaysTrueRefactoring,
   getApplicableRefactors,
-  getEditsForRefactor
+  getEditsForRefactor,
+  simplifyConditionalRefactoring
 } from '../../src/refactorings/simplifyConditional';
 import { GetMockLogger, GetProgram } from './mockLanguageService';
 
@@ -19,7 +19,7 @@ test(`should be able to simplify a 'true && true' Tautology`, t => {
   const refactoring = getApplicableRefactors(program, logger, mockFileName, 14);
 
   t.not(refactoring[0], undefined);
-  t.deepEqual(refactoring[0], conditionalAlwaysTrueRefactoring);
+  t.deepEqual(refactoring[0], simplifyConditionalRefactoring);
 
   const result = getEditsForRefactor(
     program,
