@@ -10,8 +10,6 @@ import {
 } from '../../src/refactorings/simplifyConditional';
 import { GetMockLogger, GetProgram } from './mockLanguageService';
 
-const mockFileName = 'main.ts';
-
 interface TextSelection {
   pos: number;
   end: number;
