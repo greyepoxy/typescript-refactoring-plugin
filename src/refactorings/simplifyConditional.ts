@@ -123,7 +123,7 @@ export function getEditsForRefactor(
                   start: maybeBinaryExpression.left.pos,
                   length: maybeBinaryExpression.right.end - maybeBinaryExpression.left.pos
                 },
-                newText: maybeBinaryExpression.right.getText()
+                newText: maybeBinaryExpression.right.getFullText()
               }
             ]
           }
