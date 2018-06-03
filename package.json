@@ -1,0 +1,60 @@
+{
+  "name": "typescript-refactoring-plugin",
+  "version": "0.0.1",
+  "description": "A typescript refactoring language service plugin",
+  "main": "lib/src/index.js",
+  "scripts": {
+    "build": "run-s compile check test",
+    "compile": "./node_modules/.bin/tsc -p .",
+    "check": "tslint -p .",
+    "fix": "npm run check -- --fix",
+    "test": "ava",
+    "watch:compile": "./node_modules/.bin/tsc --watch -p .",
+    "watch:test": "npm run test -- --watch",
+    "watch": "run-p watch:**"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/greyepoxy/typescript-refactoring-plugin.git"
+  },
+  "keywords": [
+    "typescript"
+  ],
+  "author": "greyepoxy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/greyepoxy/typescript-refactoring-plugin/issues"
+  },
+  "homepage": "https://github.com/greyepoxy/typescript-refactoring-plugin#readme",
+  "dependencies": {
+    "tsutils": "^2.27.1"
+  },
+  "devDependencies": {
+    "@types/node": "^10.0.9",
+    "ava": "^0.25.0",
+    "npm-run-all": "^4.1.3",
+    "prettier": "^1.12.1",
+    "tslint": "^5.10.0",
+    "tslint-config-prettier": "^1.12.0",
+    "tslint-plugin-prettier": "^1.3.0",
+    "typescript": "^2.8.3"
+  },
+  "files": [
+    "lib/src"
+  ],
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true
+  },
+  "ava": {
+    "files": [
+      "lib/**/*tests.js"
+    ],
+    "source": [
+      "lib/**/*.js",
+      "!lib/**/*.log",
+      "!lib/**/log.txt"
+    ],
+    "concurrency": 5
+  }
+}
