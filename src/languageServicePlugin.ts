@@ -1,6 +1,3 @@
-// TODO: put something real here for now just the example here
-// https://github.com/Microsoft/TypeScript/wiki/Writing-a-Language-Service-Plugin
-
 import * as ts from 'typescript/lib/tsserverlibrary';
 import { GetLogger } from './logger';
 import { getApplicableRefactors, getEditsForRefactor } from './refactorings/refactorings';
@@ -11,7 +8,7 @@ export function create(info: ts.server.PluginCreateInfo): ts.LanguageService {
 
   logger.info(info.project.projectName);
 
-  // Set up decorator
+  // Set up language service decorator
   const proxy: ts.LanguageService = Object.create(null);
   const oldLS = info.languageService;
   // tslint:disable-next-line:forin
@@ -21,10 +18,13 @@ export function create(info: ts.server.PluginCreateInfo): ts.LanguageService {
     };
   }
 
-  proxy.getApplicableRefactors = (fileName, positionOrRange) => {
-    const prior = oldLS.getApplicableRefactors(fileName, positionOrRange);
+  // Decorate the refactoring commands with extra capabilities
+  proxy.getApplicableRefactors = (fileName, positionOrRange, preferences) => {
+    const prior = oldLS.getApplicableRefactors(fileName, positionOrRange, preferences);
 
-    return prior.concat(getApplicableRefactors(oldLS, logger, fileName, positionOrRange));
+    return prior.concat(
+      getApplicableRefactors(oldLS, logger, fileName, positionOrRange, preferences)
+    );
   };
 
   proxy.getEditsForRefactor = (
@@ -32,14 +32,16 @@ export function create(info: ts.server.PluginCreateInfo): ts.LanguageService {
     formatOptions,
     positionOrRange,
     refactorName,
-    actionName
+    actionName,
+    preferences
   ) => {
     const prior = oldLS.getEditsForRefactor(
       fileName,
       formatOptions,
       positionOrRange,
       refactorName,
-      actionName
+      actionName,
+      preferences
     );
 
     if (prior !== undefined) {
@@ -53,7 +55,8 @@ export function create(info: ts.server.PluginCreateInfo): ts.LanguageService {
       formatOptions,
       positionOrRange,
       refactorName,
-      actionName
+      actionName,
+      preferences
     );
   };
 

@@ -12,7 +12,13 @@ export function GetProgram(rootFile: MockFile, referencedFiles?: MockFile[]) {
   const documentRegistry = ts.createDocumentRegistry();
   const mockHost = new MockLanguageService(rootFile, referencedFiles);
   const service = ts.createLanguageService(mockHost, documentRegistry);
-  return service.getProgram();
+  const program = service.getProgram();
+
+  if (program === undefined) {
+    throw new Error('Unable to get program from Mock Language Service');
+  }
+
+  return program;
 }
 
 export function GetMockLogger(): Logger {
@@ -44,7 +50,6 @@ export class MockLanguageService implements ts.LanguageServiceHost {
   public getScriptFileNames(): string[] {
     return this.allFiles.map(file => file.path);
   }
-  // tslint:disable-next-line:variable-name
   public getScriptVersion(_fileName: string): string {
     return '0';
   }
@@ -58,7 +63,6 @@ export class MockLanguageService implements ts.LanguageServiceHost {
   public getCurrentDirectory(): string {
     return path.dirname(this.rootFile.path);
   }
-  // tslint:disable-next-line:variable-name
   public getDefaultLibFileName(_options: ts.CompilerOptions): string {
     return 'lib.d.ts';
   }

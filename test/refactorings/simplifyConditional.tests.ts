@@ -2,48 +2,175 @@ import { test } from 'ava';
 import {
   getApplicableRefactors,
   getEditsForRefactor,
-  simplifyConditionalRefactoring
+  simplifyConditionalRefactoring,
+  simplifyConstantBooleanExpression
 } from '../../src/refactorings/simplifyConditional';
 import { validateRefactoring } from './validateRefactoring';
 
-test(`should be able to simplify 'true && true' Tautology`, t => {
+test(`should be able to simplify 'true && true'`, t => {
   validateRefactoring(
     `const some = [||]true && true;`,
     getApplicableRefactors,
     getEditsForRefactor,
     {
       name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConditionalRefactoring.actions[0].name
+      actionName: simplifyConstantBooleanExpression
     },
     `const some = true;`,
     t
   );
 });
 
-test(`should be able to simplify 'true && a' Tautology`, t => {
+test(`should be able to simplify 'false && true'`, t => {
+  validateRefactoring(
+    `const some = [||]false && true;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyConditionalRefactoring.name,
+      actionName: simplifyConstantBooleanExpression
+    },
+    `const some = false;`,
+    t
+  );
+});
+
+test(`should be able to simplify '(true && false) || true'`, t => {
+  validateRefactoring(
+    `const some = [||](true && false) || true;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyConditionalRefactoring.name,
+      actionName: simplifyConstantBooleanExpression
+    },
+    `const some = true;`,
+    t
+  );
+});
+
+test(`should be able to simplify 'true && a'`, t => {
   validateRefactoring(
     `const some = [||]true && a;`,
     getApplicableRefactors,
     getEditsForRefactor,
     {
       name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConditionalRefactoring.actions[0].name
+      actionName: simplifyConstantBooleanExpression
     },
     `const some = a;`,
     t
   );
 });
 
-test(`should be able to simplify 'a && true' Tautology`, t => {
+test(`should be able to simplify 'a && true'`, t => {
   validateRefactoring(
     `const some = [||]a && true;`,
     getApplicableRefactors,
     getEditsForRefactor,
     {
       name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConditionalRefactoring.actions[0].name
+      actionName: simplifyConstantBooleanExpression
     },
     `const some = a;`,
+    t
+  );
+});
+
+test(`should be able to simplify 'a && false'`, t => {
+  validateRefactoring(
+    `const some = [||]a && false;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyConditionalRefactoring.name,
+      actionName: simplifyConstantBooleanExpression
+    },
+    `const some = false;`,
+    t
+  );
+});
+
+test(`should be able to simplify 'false && a'`, t => {
+  validateRefactoring(
+    `const some = [||]false && a;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyConditionalRefactoring.name,
+      actionName: simplifyConstantBooleanExpression
+    },
+    `const some = false;`,
+    t
+  );
+});
+
+test(`should be able to simplify 'a || false'`, t => {
+  validateRefactoring(
+    `const some = [||]a || false;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyConditionalRefactoring.name,
+      actionName: simplifyConstantBooleanExpression
+    },
+    `const some = a;`,
+    t
+  );
+});
+
+test(`should be able to simplify 'false || a'`, t => {
+  validateRefactoring(
+    `const some = [||]false || a;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyConditionalRefactoring.name,
+      actionName: simplifyConstantBooleanExpression
+    },
+    `const some = a;`,
+    t
+  );
+});
+
+test(`should be able to simplify 'a || true'`, t => {
+  validateRefactoring(
+    `const some = [||]a || true;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyConditionalRefactoring.name,
+      actionName: simplifyConstantBooleanExpression
+    },
+    `const some = true;`,
+    t
+  );
+});
+
+test(`should be able to simplify 'true || a'`, t => {
+  validateRefactoring(
+    `const some = [||]true || a;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyConditionalRefactoring.name,
+      actionName: simplifyConstantBooleanExpression
+    },
+    `const some = true;`,
+    t
+  );
+});
+
+test(`should be able to simplify 'a == a' tautology`, t => {
+  validateRefactoring(
+    `const some = [||]a == a;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyConditionalRefactoring.name,
+      actionName: simplifyConstantBooleanExpression
+    },
+    `const some = true;`,
     t
   );
 });

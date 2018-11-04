@@ -13,7 +13,7 @@ class TSServer {
 
   constructor() {
     const projectRoot = path.join(fixturesLibDirPath, 'server');
-    const logfile = path.join(projectRoot, 'log.txt');
+    const logFile = path.join(projectRoot, 'log.txt');
     const tsserverPath = path.join(appPath, 'node_modules', 'typescript', 'lib', 'tsserver');
     const server = fork(
       tsserverPath,
@@ -21,7 +21,7 @@ class TSServer {
         '--logVerbosity',
         'verbose',
         '--logFile',
-        logfile,
+        logFile,
         '--globalPlugins',
         path.resolve(__dirname, '../../../../')
       ],

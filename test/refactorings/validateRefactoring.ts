@@ -81,9 +81,9 @@ export function validateRefactoring(
   expectedResultContents: string,
   t: TestContext
 ): void {
-  const textSelelection = parseInputFileForSelection(inputFileContentsWithSelection);
+  const textSelection = parseInputFileForSelection(inputFileContentsWithSelection);
 
-  if (textSelelection == null) {
+  if (textSelection == null) {
     throw new Error(`Expected input file to have some text selected (using '[|...|]')'`);
   }
 
@@ -99,9 +99,15 @@ export function validateRefactoring(
   const logger = GetMockLogger();
 
   const inputTextRange =
-    textSelelection.pos === textSelelection.end ? textSelelection.pos : textSelelection;
+    textSelection.pos === textSelection.end ? textSelection.pos : textSelection;
 
-  const refactorings = getApplicableRefactorings(program, logger, fileName, inputTextRange);
+  const refactorings = getApplicableRefactorings(
+    program,
+    logger,
+    fileName,
+    inputTextRange,
+    undefined
+  );
 
   validateRefactoringIsPresent(refactorings, refactoringActionToPerform, t);
 
@@ -112,7 +118,8 @@ export function validateRefactoring(
     {},
     inputTextRange,
     refactoringActionToPerform.name,
-    refactoringActionToPerform.actionName
+    refactoringActionToPerform.actionName,
+    undefined
   );
 
   t.not(result, undefined);
