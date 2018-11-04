@@ -44,7 +44,6 @@ export class MockLanguageService implements ts.LanguageServiceHost {
   public getScriptFileNames(): string[] {
     return this.allFiles.map(file => file.path);
   }
-  // tslint:disable-next-line:variable-name
   public getScriptVersion(_fileName: string): string {
     return '0';
   }
@@ -58,7 +57,6 @@ export class MockLanguageService implements ts.LanguageServiceHost {
   public getCurrentDirectory(): string {
     return path.dirname(this.rootFile.path);
   }
-  // tslint:disable-next-line:variable-name
   public getDefaultLibFileName(_options: ts.CompilerOptions): string {
     return 'lib.d.ts';
   }

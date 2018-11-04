@@ -4,6 +4,15 @@
     "prettier": true,
     "object-literal-sort-keys": false,
     "no-console": false,
-    "interface-name": false
+    "interface-name": false,
+    // https://palantir.github.io/tslint/rules/variable-name/
+    "variable-name": {
+        "options": [
+            "ban-keywords",
+            "check-format",
+            "allow-pascal-case",
+            "allow-leading-underscore"
+        ]
+    }
   }
 }

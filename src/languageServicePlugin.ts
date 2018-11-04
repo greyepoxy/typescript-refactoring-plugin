@@ -1,6 +1,3 @@
-// TODO: put something real here for now just the example here
-// https://github.com/Microsoft/TypeScript/wiki/Writing-a-Language-Service-Plugin
-
 import * as ts from 'typescript/lib/tsserverlibrary';
 import { GetLogger } from './logger';
 import { getApplicableRefactors, getEditsForRefactor } from './refactorings/refactorings';

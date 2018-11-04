@@ -82,7 +82,6 @@ export function getEditsForRefactor(
   program: ts.Program,
   logger: Logger,
   fileName: string,
-  // tslint:disable-next-line:variable-name
   _formatOptions: ts.FormatCodeSettings,
   positionOrRange: number | ts.TextRange,
   refactorName: string,
