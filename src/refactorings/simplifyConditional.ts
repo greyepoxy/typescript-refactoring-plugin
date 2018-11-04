@@ -48,7 +48,8 @@ export function getApplicableRefactors(
   program: ts.Program,
   logger: Logger,
   fileName: string,
-  positionOrRange: number | ts.TextRange
+  positionOrRange: number | ts.TextRange,
+  _preferences: ts.UserPreferences | undefined
 ): ts.ApplicableRefactorInfo[] {
   const sourceFile = program.getSourceFile(fileName);
   if (sourceFile === undefined) {
@@ -85,7 +86,8 @@ export function getEditsForRefactor(
   _formatOptions: ts.FormatCodeSettings,
   positionOrRange: number | ts.TextRange,
   refactorName: string,
-  actionName: string
+  actionName: string,
+  _preferences: ts.UserPreferences | undefined
 ): ts.RefactorEditInfo | undefined {
   if (refactorName !== name) {
     return undefined;

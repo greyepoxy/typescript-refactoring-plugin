@@ -101,7 +101,13 @@ export function validateRefactoring(
   const inputTextRange =
     textSelection.pos === textSelection.end ? textSelection.pos : textSelection;
 
-  const refactorings = getApplicableRefactorings(program, logger, fileName, inputTextRange);
+  const refactorings = getApplicableRefactorings(
+    program,
+    logger,
+    fileName,
+    inputTextRange,
+    undefined
+  );
 
   validateRefactoringIsPresent(refactorings, refactoringActionToPerform, t);
 
@@ -112,7 +118,8 @@ export function validateRefactoring(
     {},
     inputTextRange,
     refactoringActionToPerform.name,
-    refactoringActionToPerform.actionName
+    refactoringActionToPerform.actionName,
+    undefined
   );
 
   t.not(result, undefined);

@@ -5,7 +5,8 @@ export type GetApplicableRefactors = (
   program: ts.Program,
   logger: Logger,
   fileName: string,
-  positionOrRange: number | ts.TextRange
+  positionOrRange: number | ts.TextRange,
+  preferences: ts.UserPreferences | undefined
 ) => ts.ApplicableRefactorInfo[];
 
 export type GetEditsForRefactor = (
@@ -15,5 +16,6 @@ export type GetEditsForRefactor = (
   formatOptions: ts.FormatCodeSettings,
   positionOrRange: number | ts.TextRange,
   refactorName: string,
-  actionName: string
+  actionName: string,
+  preferences: ts.UserPreferences | undefined
 ) => ts.RefactorEditInfo | undefined;
