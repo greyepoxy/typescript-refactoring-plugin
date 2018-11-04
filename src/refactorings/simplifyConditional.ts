@@ -3,16 +3,15 @@ import * as ts from 'typescript/lib/tsserverlibrary';
 import { Logger } from '../logger';
 
 export const name = 'Simplify Conditional';
-export const removeAlwaysTrueFromConjuctionExpression =
-  'remove_always_true_proposition_from_and_boolean_expression';
+export const simplifyConstantBooleanExpression = 'simplify_constant_boolean_expression';
 
 export const simplifyConditionalRefactoring: ts.ApplicableRefactorInfo = {
   name,
   description: 'Simplify this conditional',
   actions: [
     {
-      name: removeAlwaysTrueFromConjuctionExpression,
-      description: 'Remove always true proposition from boolean expression conjunction.'
+      name: simplifyConstantBooleanExpression,
+      description: 'Simplify constant boolean expression'
     }
   ]
 };
@@ -93,7 +92,7 @@ export function getEditsForRefactor(
     return undefined;
   }
 
-  if (actionName === removeAlwaysTrueFromConjuctionExpression) {
+  if (actionName === simplifyConstantBooleanExpression) {
     const sourceFile = program.getSourceFile(fileName);
     if (sourceFile === undefined) {
       logger.error(`cannot load source file ${fileName}`);
