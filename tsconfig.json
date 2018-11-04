@@ -1,11 +1,11 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "target": "es5",
+        "target": "es6",
         "outDir": "lib",
         "strict": true,
         "lib": [
-            "es2015"
+            "es6"
         ],
         "noUnusedLocals": true,
         "noFallthroughCasesInSwitch": true,
