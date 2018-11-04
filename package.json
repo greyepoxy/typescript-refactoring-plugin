@@ -5,12 +5,12 @@
   "main": "lib/src/index.js",
   "scripts": {
     "build": "run-s compile check test",
-    "compile": "./node_modules/.bin/tsc -p .",
+    "compile": "tsc -p .",
     "check": "tslint -p .",
-    "fix": "npm run check -- --fix",
+    "fix": "run-s \"check -- --fix\"",
     "test": "ava",
-    "watch:compile": "./node_modules/.bin/tsc --watch -p .",
-    "watch:test": "npm run test -- --watch",
+    "watch:compile": "run-s \"compile -- --watch\"",
+    "watch:test": "run-s \"test -- --watch\"",
     "watch": "run-p watch:**"
   },
   "repository": {
