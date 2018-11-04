@@ -114,11 +114,11 @@ function simplifyBooleanExpression(expression: BooleanExpression): BooleanExpres
       return { _: 'false' };
     }
 
-    if (simplifiedLeft._ === 'true' && simplifiedRight._ !== 'true') {
+    if (simplifiedLeft._ === 'true') {
       return simplifiedRight;
     }
 
-    if (simplifiedRight._ === 'true' && simplifiedLeft._ !== 'true') {
+    if (simplifiedRight._ === 'true') {
       return simplifiedLeft;
     }
   }
@@ -130,6 +130,14 @@ function simplifyBooleanExpression(expression: BooleanExpression): BooleanExpres
 
     if (simplifiedLeft._ === 'false' && simplifiedRight._ === 'false') {
       return { _: 'false' };
+    }
+
+    if (simplifiedLeft._ === 'false') {
+      return simplifiedRight;
+    }
+
+    if (simplifiedRight._ === 'false') {
+      return simplifiedLeft;
     }
   }
 
