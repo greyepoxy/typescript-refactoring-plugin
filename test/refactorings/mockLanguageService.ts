@@ -12,7 +12,13 @@ export function GetProgram(rootFile: MockFile, referencedFiles?: MockFile[]) {
   const documentRegistry = ts.createDocumentRegistry();
   const mockHost = new MockLanguageService(rootFile, referencedFiles);
   const service = ts.createLanguageService(mockHost, documentRegistry);
-  return service.getProgram();
+  const program = service.getProgram();
+
+  if (program === undefined) {
+    throw new Error('Unable to get program from Mock Language Service');
+  }
+
+  return program;
 }
 
 export function GetMockLogger(): Logger {

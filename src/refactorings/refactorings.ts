@@ -4,6 +4,9 @@ import {
   getEditsForRefactor as getEditsForSimplifyConditionalRefactors
 } from './simplifyConditional';
 
+const noProgramError =
+  'Cannot get the current Program this could be because tsc is running in syntaxOnly mode, unable to provide refactorings';
+
 export function getApplicableRefactors(
   languageService: ts.LanguageService,
   logger: Logger,
@@ -12,6 +15,11 @@ export function getApplicableRefactors(
   preferences: ts.UserPreferences | undefined
 ): ts.ApplicableRefactorInfo[] {
   const program = languageService.getProgram();
+
+  if (program === undefined) {
+    logger.error(noProgramError);
+    return [];
+  }
 
   const refactoringInfo = ([] as ts.ApplicableRefactorInfo[]).concat(
     getApplicableSimplifyConditionalRefactors(
@@ -37,6 +45,11 @@ export function getEditsForRefactor(
   preferences: ts.UserPreferences | undefined
 ): ts.RefactorEditInfo | undefined {
   const program = languageService.getProgram();
+
+  if (program === undefined) {
+    logger.error(noProgramError);
+    return undefined;
+  }
 
   return getEditsForSimplifyConditionalRefactors(
     program,
