@@ -35,6 +35,20 @@ test(`should be able to simplify 'false && true'`, t => {
   );
 });
 
+test(`should be able to simplify '(true && false) || true'`, t => {
+  validateRefactoring(
+    `const some = [||](true && false) || true;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyConditionalRefactoring.name,
+      actionName: simplifyConstantBooleanExpression
+    },
+    `const some = true;`,
+    t
+  );
+});
+
 test(`should be able to simplify 'true && a'`, t => {
   validateRefactoring(
     `const some = [||]true && a;`,
