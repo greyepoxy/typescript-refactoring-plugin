@@ -208,13 +208,7 @@ export function getEditsForRefactor(
     const maybeSimplifiedBooleanExpression = simplifyBinaryExpression(booleanExpression);
 
     if (booleanExpression !== maybeSimplifiedBooleanExpression) {
-      const nodePrinter = ts.createPrinter();
-
-      const newText = ` ${nodePrinter.printNode(
-        ts.EmitHint.Unspecified,
-        maybeSimplifiedBooleanExpression,
-        sourceFile
-      )}`;
+      const newText = ` ${getNodeText(maybeSimplifiedBooleanExpression, sourceFile)}`;
 
       return {
         edits: [
@@ -242,4 +236,12 @@ export function getEditsForRefactor(
 
   logger.error(`Recieved request to perform unknown ${refactorName} action ${actionName}`);
   return undefined;
+}
+
+function getNodeText(node: ts.Node, sourceFile: ts.SourceFile): string {
+  const nodePrinter = ts.createPrinter();
+
+  const newText = nodePrinter.printNode(ts.EmitHint.Unspecified, node, sourceFile);
+
+  return newText;
 }
