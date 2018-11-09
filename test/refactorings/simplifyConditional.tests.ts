@@ -5,7 +5,7 @@ import {
   simplifyConditionalRefactoring,
   simplifyConstantBooleanExpression
 } from '../../src/refactorings/simplifyConditional';
-import { validateRefactoring } from './validateRefactoring';
+import { validateNoRefactoringOptions, validateRefactoring } from './validateRefactoring';
 
 test(`should be able to simplify 'true && true'`, t => {
   validateRefactoring(
@@ -161,6 +161,20 @@ test(`should be able to simplify 'true || a'`, t => {
   );
 });
 
+test(`should be able to simplify '<something> || false'`, t => {
+  validateRefactoring(
+    `const some = [||](5 < a) || false;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyConditionalRefactoring.name,
+      actionName: simplifyConstantBooleanExpression
+    },
+    `const some = (5 < a);`,
+    t
+  );
+});
+
 test(`should be able to simplify 'a == a' tautology`, t => {
   validateRefactoring(
     `const some = [||]a == a;`,
@@ -173,6 +187,10 @@ test(`should be able to simplify 'a == a' tautology`, t => {
     `const some = true;`,
     t
   );
+});
+
+test(`should not attempt to simplify expressions`, t => {
+  validateNoRefactoringOptions(`const some = [||]a < 32;`, getApplicableRefactors, t);
 });
 
 // TODO: implement the rest of the simplifications described here

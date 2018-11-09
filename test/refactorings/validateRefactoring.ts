@@ -15,7 +15,7 @@ interface Refactoring {
   actionName: string;
 }
 
-function parseInputFileForSelection(fileContents: string): TextSelection | null {
+function tryParseInputFileForSelection(fileContents: string): TextSelection | null {
   const selectionRegex = /\[\|.*\|\]/s;
 
   const match = selectionRegex.exec(fileContents);
@@ -26,6 +26,21 @@ function parseInputFileForSelection(fileContents: string): TextSelection | null 
   return {
     pos: match.index,
     end: selectionRegex.lastIndex
+  };
+}
+
+function parseInputFileForSelection(
+  fileContentsWithTextSelection: string
+): { textSelection: TextSelection | number; fileContents: string } {
+  const textSelection = tryParseInputFileForSelection(fileContentsWithTextSelection);
+
+  if (textSelection == null) {
+    throw new Error(`Expected input file to have some text selected (using '[|...|]')'`);
+  }
+
+  return {
+    textSelection: textSelection.pos === textSelection.end ? textSelection.pos : textSelection,
+    fileContents: removeSelectionFromFile(fileContentsWithTextSelection)
   };
 }
 
@@ -73,6 +88,35 @@ function applyTextEdits(text: string, edits: ts.TextChange[]): string {
   return result;
 }
 
+export function validateNoRefactoringOptions(
+  inputFileContentsWithSelection: string,
+  getApplicableRefactorings: GetApplicableRefactors,
+  t: TestContext
+): void {
+  const fileName = 'main.ts';
+  const { textSelection, fileContents } = parseInputFileForSelection(
+    inputFileContentsWithSelection
+  );
+
+  const program = GetProgram({
+    contents: fileContents,
+    path: fileName,
+    scriptKindName: 'TS'
+  });
+
+  const logger = GetMockLogger();
+
+  const refactorings = getApplicableRefactorings(
+    program,
+    logger,
+    fileName,
+    textSelection,
+    undefined
+  );
+
+  t.deepEqual(refactorings, []);
+}
+
 export function validateRefactoring(
   inputFileContentsWithSelection: string,
   getApplicableRefactorings: GetApplicableRefactors,
@@ -81,31 +125,24 @@ export function validateRefactoring(
   expectedResultContents: string,
   t: TestContext
 ): void {
-  const textSelection = parseInputFileForSelection(inputFileContentsWithSelection);
-
-  if (textSelection == null) {
-    throw new Error(`Expected input file to have some text selected (using '[|...|]')'`);
-  }
-
   const fileName = 'main.ts';
-  const inputFileContents = removeSelectionFromFile(inputFileContentsWithSelection);
+  const { textSelection, fileContents } = parseInputFileForSelection(
+    inputFileContentsWithSelection
+  );
 
   const program = GetProgram({
-    contents: inputFileContents,
+    contents: fileContents,
     path: fileName,
     scriptKindName: 'TS'
   });
 
   const logger = GetMockLogger();
 
-  const inputTextRange =
-    textSelection.pos === textSelection.end ? textSelection.pos : textSelection;
-
   const refactorings = getApplicableRefactorings(
     program,
     logger,
     fileName,
-    inputTextRange,
+    textSelection,
     undefined
   );
 
@@ -116,7 +153,7 @@ export function validateRefactoring(
     logger,
     fileName,
     {},
-    inputTextRange,
+    textSelection,
     refactoringActionToPerform.name,
     refactoringActionToPerform.actionName,
     undefined
@@ -126,7 +163,7 @@ export function validateRefactoring(
   if (result !== undefined) {
     t.deepEqual(result.edits[0].fileName, fileName);
 
-    const resultingFileContents = applyTextEdits(inputFileContents, result.edits[0].textChanges);
+    const resultingFileContents = applyTextEdits(fileContents, result.edits[0].textChanges);
 
     t.deepEqual(resultingFileContents, expectedResultContents);
   }
