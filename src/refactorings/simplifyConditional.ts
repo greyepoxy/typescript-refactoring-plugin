@@ -20,170 +20,79 @@ function formatLineAndChar(lineAndChar: ts.LineAndCharacter): string {
   return `(${lineAndChar.line}, ${lineAndChar.character})`;
 }
 
-interface Variable {
-  _: 'variable';
-  token: string;
-}
-interface TrueValue {
-  _: 'true';
-}
-interface FalseValue {
-  _: 'false';
-}
-
-type BooleanExpression = BooleanConjunction | Variable | TrueValue | FalseValue;
-type BooleanOperator = 'and' | 'or' | 'equal';
-
-interface BooleanConjunction {
-  _: 'conjunction';
-  left: BooleanExpression;
-  right: BooleanExpression;
-  operator: BooleanOperator;
-}
-
-function parseOutBooleanExpression(expression: ts.Expression): BooleanExpression | null {
-  if (expression.kind === ts.SyntaxKind.TrueKeyword) {
-    return { _: 'true' };
-  }
-
-  if (expression.kind === ts.SyntaxKind.FalseKeyword) {
-    return { _: 'false' };
-  }
-
+function simplifyExpression(expression: ts.Expression): ts.Expression {
   if (ts.isBinaryExpression(expression)) {
-    return parseTsBinaryExpressionIntoBooleanExpression(expression);
-  }
-
-  if (ts.isParenthesizedExpression(expression)) {
-    return parseOutBooleanExpression(expression.expression);
-  }
-
-  if (ts.isIdentifier(expression)) {
-    return {
-      _: 'variable',
-      token: expression.text
-    };
-  }
-
-  return null;
-}
-
-function parseTsBinaryExpressionIntoBooleanExpression(
-  expression: ts.BinaryExpression
-): BooleanConjunction | null {
-  let operator: BooleanOperator = 'and';
-  if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
-    operator = 'and';
-  } else if (
-    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken ||
-    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken
-  ) {
-    operator = 'equal';
-  } else if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
-    operator = 'or';
-  }
-
-  const leftExpression = parseOutBooleanExpression(expression.left);
-  const rightExpression = parseOutBooleanExpression(expression.right);
-
-  if (leftExpression === null || rightExpression === null) {
-    return null;
-  }
-
-  return {
-    _: 'conjunction',
-    left: leftExpression,
-    right: rightExpression,
-    operator
-  };
-}
-
-function simplifyBooleanExpression(expression: BooleanExpression): BooleanExpression {
-  if (expression._ === 'true' || expression._ === 'false' || expression._ === 'variable') {
-    return expression;
-  }
-
-  const simplifiedLeft = simplifyBooleanExpression(expression.left);
-  const simplifiedRight = simplifyBooleanExpression(expression.right);
-  if (expression.operator === 'and') {
-    if (simplifiedLeft._ === 'true' && simplifiedRight._ === 'true') {
-      return { _: 'true' };
-    }
-
-    if (simplifiedLeft._ === 'false' || simplifiedRight._ === 'false') {
-      return { _: 'false' };
-    }
-
-    if (simplifiedLeft._ === 'true') {
-      return simplifiedRight;
-    }
-
-    if (simplifiedRight._ === 'true') {
-      return simplifiedLeft;
-    }
-  }
-
-  if (expression.operator === 'or') {
-    if (simplifiedLeft._ === 'true' || simplifiedRight._ === 'true') {
-      return { _: 'true' };
-    }
-
-    if (simplifiedLeft._ === 'false' && simplifiedRight._ === 'false') {
-      return { _: 'false' };
-    }
-
-    if (simplifiedLeft._ === 'false') {
-      return simplifiedRight;
-    }
-
-    if (simplifiedRight._ === 'false') {
-      return simplifiedLeft;
-    }
-  }
-
-  // equals case
-  if (
-    (simplifiedLeft._ === 'true' && simplifiedRight._ === 'true') ||
-    (simplifiedLeft._ === 'false' && simplifiedRight._ === 'false') ||
-    (simplifiedLeft._ === 'variable' &&
-      simplifiedRight._ === 'variable' &&
-      simplifiedLeft.token === simplifiedRight.token)
-  ) {
-    return { _: 'true' };
-  }
-
-  if (
-    (simplifiedLeft._ === 'true' && simplifiedRight._ === 'false') ||
-    (simplifiedLeft._ === 'false' && simplifiedRight._ === 'true')
-  ) {
-    return { _: 'false' };
+    return simplifyBinaryExpression(expression);
   }
 
   return expression;
 }
 
-function getTextForBooleanExpressionWithParenthesisIfConjuction(
-  expression: BooleanExpression
-): string {
-  const expressionText = getTextForBooleanExpression(expression);
+function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expression {
+  const simplifiedLeft = simplifyExpression(expression.left);
+  const simplifiedRight = simplifyExpression(expression.right);
 
-  return expression._ === 'conjunction' ? `(${expressionText})` : expressionText;
-}
+  if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
+    if (simplifiedLeft.kind === ts.SyntaxKind.TrueKeyword) {
+      return simplifiedRight;
+    }
 
-function getTextForBooleanExpression(expression: BooleanExpression): string {
-  if (expression._ === 'true' || expression._ === 'false') {
-    return expression._;
+    if (simplifiedRight.kind === ts.SyntaxKind.TrueKeyword) {
+      return simplifiedLeft;
+    }
+
+    if (
+      simplifiedLeft.kind === ts.SyntaxKind.FalseKeyword ||
+      simplifiedRight.kind === ts.SyntaxKind.FalseKeyword
+    ) {
+      return ts.createFalse();
+    }
   }
 
-  if (expression._ === 'variable') {
-    return expression.token;
+  if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
+    if (
+      simplifiedLeft.kind === ts.SyntaxKind.TrueKeyword ||
+      simplifiedRight.kind === ts.SyntaxKind.TrueKeyword
+    ) {
+      return ts.createTrue();
+    }
+
+    if (simplifiedLeft.kind === ts.SyntaxKind.FalseKeyword) {
+      return simplifiedRight;
+    }
+
+    if (simplifiedRight.kind === ts.SyntaxKind.FalseKeyword) {
+      return simplifiedLeft;
+    }
   }
 
-  const leftText = getTextForBooleanExpressionWithParenthesisIfConjuction(expression.left);
-  const opText = expression.operator === 'and' ? '&&' : expression.operator === 'or' ? '||' : '===';
-  const rightText = getTextForBooleanExpressionWithParenthesisIfConjuction(expression.right);
+  if (
+    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
+    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken
+  ) {
+    if (
+      (simplifiedLeft.kind === ts.SyntaxKind.TrueKeyword &&
+        simplifiedRight.kind === ts.SyntaxKind.TrueKeyword) ||
+      (simplifiedLeft.kind === ts.SyntaxKind.FalseKeyword &&
+        simplifiedRight.kind === ts.SyntaxKind.FalseKeyword) ||
+      (ts.isIdentifier(simplifiedLeft) &&
+        ts.isIdentifier(simplifiedRight) &&
+        simplifiedLeft.text === simplifiedRight.text)
+    ) {
+      return ts.createTrue();
+    }
 
-  return `${leftText} ${opText} ${rightText}`;
+    if (
+      (simplifiedLeft.kind === ts.SyntaxKind.TrueKeyword &&
+        simplifiedRight.kind === ts.SyntaxKind.FalseKeyword) ||
+      (simplifiedLeft.kind === ts.SyntaxKind.FalseKeyword &&
+        simplifiedRight.kind === ts.SyntaxKind.TrueKeyword)
+    ) {
+      return ts.createFalse();
+    }
+  }
+
+  return ts.updateBinary(expression, simplifiedLeft, simplifiedRight);
 }
 
 function tryGetTargetExpression(
@@ -252,21 +161,16 @@ export function getApplicableRefactors(
     return [];
   }
 
-  const parsedBooleanExpression = parseTsBinaryExpressionIntoBooleanExpression(booleanExpression);
+  const maybeSimplifiedBooleanExpression = simplifyBinaryExpression(booleanExpression);
 
-  if (parsedBooleanExpression === null) {
-    logger.error(`Failed to parse boolean expression, ${booleanExpression.getText()}`);
-    return [];
-  }
-
-  const maybeSimplifiedBooleanExpression = simplifyBooleanExpression(parsedBooleanExpression);
-
-  if (parsedBooleanExpression !== maybeSimplifiedBooleanExpression) {
+  if (booleanExpression !== maybeSimplifiedBooleanExpression) {
     const start = formatLineAndChar(
       sourceFile.getLineAndCharacterOfPosition(booleanExpression.pos)
     );
     const end = formatLineAndChar(sourceFile.getLineAndCharacterOfPosition(booleanExpression.end));
-    logger.info(`Can simplify tautology '${booleanExpression.getText()}' at [${start}, ${end}]`);
+    logger.info(
+      `Can simplify binary expression '${booleanExpression.getText()}' at [${start}, ${end}]`
+    );
 
     return [simplifyConditionalRefactoring];
   }
@@ -301,17 +205,10 @@ export function getEditsForRefactor(
       return undefined;
     }
 
-    const parsedBooleanExpression = parseTsBinaryExpressionIntoBooleanExpression(booleanExpression);
+    const maybeSimplifiedBooleanExpression = simplifyBinaryExpression(booleanExpression);
 
-    if (parsedBooleanExpression === null) {
-      logger.error(`Failed to parse boolean expression, ${booleanExpression.getText()}`);
-      return undefined;
-    }
-
-    const maybeSimplifiedBooleanExpression = simplifyBooleanExpression(parsedBooleanExpression);
-
-    if (parsedBooleanExpression !== maybeSimplifiedBooleanExpression) {
-      const newText = ` ${getTextForBooleanExpression(maybeSimplifiedBooleanExpression)}`;
+    if (booleanExpression !== maybeSimplifiedBooleanExpression) {
+      const newText = ` ${getNodeText(maybeSimplifiedBooleanExpression, sourceFile)}`;
 
       return {
         edits: [
@@ -337,6 +234,14 @@ export function getEditsForRefactor(
     return undefined;
   }
 
-  logger.error(`Recieved request to perform unknown ${refactorName} action ${actionName}`);
+  logger.error(`Received request to perform unknown ${refactorName} action ${actionName}`);
   return undefined;
+}
+
+function getNodeText(node: ts.Node, sourceFile: ts.SourceFile): string {
+  const nodePrinter = ts.createPrinter();
+
+  const newText = nodePrinter.printNode(ts.EmitHint.Unspecified, node, sourceFile);
+
+  return newText;
 }
