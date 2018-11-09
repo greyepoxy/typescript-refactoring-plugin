@@ -234,7 +234,7 @@ export function getEditsForRefactor(
     return undefined;
   }
 
-  logger.error(`Recieved request to perform unknown ${refactorName} action ${actionName}`);
+  logger.error(`Received request to perform unknown ${refactorName} action ${actionName}`);
   return undefined;
 }
 
