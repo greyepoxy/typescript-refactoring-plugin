@@ -3,49 +3,11 @@ import {
   GetApplicableRefactors,
   GetEditsForRefactor
 } from '../../src/refactorings/refactoringFunctions';
-import { GetMockLogger, GetProgram } from './mockLanguageService';
-
-interface TextSelection {
-  pos: number;
-  end: number;
-}
+import { GetMockLogger, GetProgram, parseInputFileForSelection } from './mockLanguageService';
 
 interface Refactoring {
   name: string;
   actionName: string;
-}
-
-function tryParseInputFileForSelection(fileContents: string): TextSelection | null {
-  const selectionRegex = /\[\|.*\|\]/s;
-
-  const match = selectionRegex.exec(fileContents);
-  if (match == null) {
-    return null;
-  }
-
-  return {
-    pos: match.index,
-    end: selectionRegex.lastIndex
-  };
-}
-
-function parseInputFileForSelection(
-  fileContentsWithTextSelection: string
-): { textSelection: TextSelection | number; fileContents: string } {
-  const textSelection = tryParseInputFileForSelection(fileContentsWithTextSelection);
-
-  if (textSelection == null) {
-    throw new Error(`Expected input file to have some text selected (using '[|...|]')'`);
-  }
-
-  return {
-    textSelection: textSelection.pos === textSelection.end ? textSelection.pos : textSelection,
-    fileContents: removeSelectionFromFile(fileContentsWithTextSelection)
-  };
-}
-
-function removeSelectionFromFile(fileContents: string): string {
-  return fileContents.replace('[|', '').replace('|]', '');
 }
 
 function validateRefactoringIsPresent(

@@ -67,3 +67,48 @@ export class MockLanguageService implements ts.LanguageServiceHost {
     return 'lib.d.ts';
   }
 }
+
+export interface TextSelection {
+  pos: number;
+  end: number;
+}
+
+function tryParseInputFileForSelection(fileContents: string): TextSelection | null {
+  const selectionRegex = /\[\|(.*)\|\]/s;
+
+  const match = selectionRegex.exec(fileContents);
+  if (match == null) {
+    return null;
+  }
+
+  const startPositionOfTextCapture = match.index;
+  const capturedText = match[1];
+
+  return {
+    pos: startPositionOfTextCapture,
+    end: startPositionOfTextCapture + capturedText.length
+  };
+}
+
+export function parseInputFileForSelection(
+  fileContentsWithTextSelection: string
+): { textSelection: TextSelection | number; fileContents: string } {
+  const textSelection = tryParseInputFileForSelection(fileContentsWithTextSelection);
+
+  if (textSelection == null) {
+    throw new Error(`Expected input file to have some text selected (using '[|...|]')'`);
+  }
+
+  const textSelectionOrCursorPos =
+    textSelection.pos === textSelection.end ? textSelection.pos : textSelection;
+  const fileContentsWithoutSelectionText = removeSelectionFromFile(fileContentsWithTextSelection);
+
+  return {
+    textSelection: textSelectionOrCursorPos,
+    fileContents: fileContentsWithoutSelectionText
+  };
+}
+
+function removeSelectionFromFile(fileContents: string): string {
+  return fileContents.replace('[|', '').replace('|]', '');
+}
