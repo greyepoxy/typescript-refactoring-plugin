@@ -1,4 +1,4 @@
-import { test } from 'ava';
+import { Macro, test, TestContext } from 'ava';
 import * as ts from 'typescript/lib/tsserverlibrary';
 import { tryGetClosestBinaryExpression } from '../../src/refactorings/tryGetTargetExpression';
 import {
@@ -33,9 +33,11 @@ function getProgramForSourceFileWithSelectionText(
   };
 }
 
-test(`should return binary expression at cursor`, t => {
-  const inputFileContentsWithSelection = `const some = [||]b && true;`;
-
+const validateNodeSelectionMacro: Macro<TestContext> = (
+  t,
+  inputFileContentsWithSelection: string,
+  expectedNodeText: string
+) => {
   const { sourceFile, textSelection } = getProgramForSourceFileWithSelectionText(
     inputFileContentsWithSelection
   );
@@ -48,5 +50,14 @@ test(`should return binary expression at cursor`, t => {
 
   t.notDeepEqual(node, null);
   t.deepEqual(node.kind, ts.SyntaxKind.BinaryExpression);
-  t.deepEqual(node.getText(), 'b && true');
-});
+  t.deepEqual(node.getText(), expectedNodeText);
+};
+
+validateNodeSelectionMacro.title = (
+  providedTitle = '',
+  inputFileContentsWithSelection: string,
+  expectedNodeText: string
+) =>
+  `should select '${expectedNodeText}' from ${inputFileContentsWithSelection} ${providedTitle}`.trim();
+
+test(validateNodeSelectionMacro, `const some = [||]b && true;`, 'b && true');
