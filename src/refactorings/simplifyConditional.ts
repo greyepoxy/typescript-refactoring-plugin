@@ -95,36 +95,6 @@ function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expressio
   return ts.updateBinary(expression, simplifiedLeft, simplifiedRight);
 }
 
-export function findLargestPossibleBinaryExpressionParentNode(
-  startNode: ts.Node
-): ts.BinaryExpression | null {
-  const firstBinaryExpression = getNextParentBinaryExpression(startNode);
-  if (firstBinaryExpression === null) {
-    return null;
-  }
-
-  let mostExpandedBinaryExpressionSelectionSoFar = firstBinaryExpression;
-  let nextBinaryExpressionSelection: ts.BinaryExpression | null = null;
-  while (nextBinaryExpressionSelection !== null) {
-    mostExpandedBinaryExpressionSelectionSoFar = nextBinaryExpressionSelection;
-    nextBinaryExpressionSelection = getNextParentBinaryExpression(nextBinaryExpressionSelection);
-  }
-
-  return mostExpandedBinaryExpressionSelectionSoFar;
-}
-
-function getNextParentBinaryExpression(node: ts.Node): ts.BinaryExpression | null {
-  if (ts.isSourceFile(node)) {
-    return null;
-  }
-
-  if (ts.isBinaryExpression(node.parent)) {
-    return node.parent;
-  }
-
-  return getNextParentBinaryExpression(node.parent);
-}
-
 export function getApplicableRefactors(
   program: ts.Program,
   logger: Logger,

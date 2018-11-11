@@ -1,6 +1,36 @@
 import * as tsutils from 'tsutils';
+import * as ts from 'typescript/lib/tsserverlibrary';
 import { Logger } from '../logger';
-import { findLargestPossibleBinaryExpressionParentNode } from './simplifyConditional';
+
+function findLargestPossibleBinaryExpressionParentNode(
+  startNode: ts.Node
+): ts.BinaryExpression | null {
+  const firstBinaryExpression = getNextParentBinaryExpression(startNode);
+  if (firstBinaryExpression === null) {
+    return null;
+  }
+
+  let mostExpandedBinaryExpressionSelectionSoFar = firstBinaryExpression;
+  let nextBinaryExpressionSelection: ts.BinaryExpression | null = null;
+  while (nextBinaryExpressionSelection !== null) {
+    mostExpandedBinaryExpressionSelectionSoFar = nextBinaryExpressionSelection;
+    nextBinaryExpressionSelection = getNextParentBinaryExpression(nextBinaryExpressionSelection);
+  }
+
+  return mostExpandedBinaryExpressionSelectionSoFar;
+}
+
+function getNextParentBinaryExpression(node: ts.Node): ts.BinaryExpression | null {
+  if (ts.isSourceFile(node)) {
+    return null;
+  }
+
+  if (ts.isBinaryExpression(node.parent)) {
+    return node.parent;
+  }
+
+  return getNextParentBinaryExpression(node.parent);
+}
 
 export function tryGetClosestBinaryExpression(
   logger: Logger,
