@@ -2,22 +2,12 @@ import * as tsutils from 'tsutils';
 import * as ts from 'typescript/lib/tsserverlibrary';
 import { Logger } from '../logger';
 
-function findLargestPossibleBinaryExpressionParentNode(
-  startNode: ts.Node
-): ts.BinaryExpression | null {
-  const firstBinaryExpression = getNextParentBinaryExpression(startNode);
-  if (firstBinaryExpression === null) {
-    return null;
+function findParentBinaryExpression(startNode: ts.Node): ts.BinaryExpression | null {
+  if (ts.isBinaryExpression(startNode)) {
+    return startNode;
   }
 
-  let mostExpandedBinaryExpressionSelectionSoFar = firstBinaryExpression;
-  let nextBinaryExpressionSelection: ts.BinaryExpression | null = null;
-  while (nextBinaryExpressionSelection !== null) {
-    mostExpandedBinaryExpressionSelectionSoFar = nextBinaryExpressionSelection;
-    nextBinaryExpressionSelection = getNextParentBinaryExpression(nextBinaryExpressionSelection);
-  }
-
-  return mostExpandedBinaryExpressionSelectionSoFar;
+  return getNextParentBinaryExpression(startNode);
 }
 
 function getNextParentBinaryExpression(node: ts.Node): ts.BinaryExpression | null {
@@ -41,9 +31,10 @@ export function tryGetClosestBinaryExpression(
 
   const token = tsutils.getTokenAtPosition(sourceFile, startPos);
 
-  if (token === undefined || token.parent === undefined) {
+  if (token === undefined) {
     logger.error(`No token at given position ${startPos}`);
     return null;
   }
-  return findLargestPossibleBinaryExpressionParentNode(token);
+
+  return findParentBinaryExpression(token);
 }
