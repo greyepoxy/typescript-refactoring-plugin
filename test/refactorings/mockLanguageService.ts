@@ -68,7 +68,7 @@ export class MockLanguageService implements ts.LanguageServiceHost {
   }
 }
 
-interface TextSelection {
+export interface TextSelection {
   pos: number;
   end: number;
 }
