@@ -61,3 +61,17 @@ validateNodeSelectionMacro.title = (
   `should select '${expectedNodeText}' from ${inputFileContentsWithSelection} ${providedTitle}`.trim();
 
 test(validateNodeSelectionMacro, `const some = [||]b && true;`, 'b && true');
+
+test(validateNodeSelectionMacro, `const some = [||]b === true;`, 'b === true');
+
+test(validateNodeSelectionMacro, `const some = [|b ===|] true;`, 'b === true');
+
+test(validateNodeSelectionMacro, `const some = [||]5 < b;`, '5 < b');
+
+test(validateNodeSelectionMacro, `const some = [||](5 < b) === c;`, '(5 < b) === c');
+
+test(validateNodeSelectionMacro, `const some = [||]5 < b === c;`, '5 < b');
+
+test(validateNodeSelectionMacro, `const some = ([||]5 < b) === c;`, '5 < b');
+
+test(validateNodeSelectionMacro, `const some = ([|5 < b|]) || c || b;`, '5 < b');
