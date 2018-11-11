@@ -74,16 +74,19 @@ export interface TextSelection {
 }
 
 function tryParseInputFileForSelection(fileContents: string): TextSelection | null {
-  const selectionRegex = /\[\|.*\|\]/s;
+  const selectionRegex = /\[\|(.*)\|\]/s;
 
   const match = selectionRegex.exec(fileContents);
   if (match == null) {
     return null;
   }
 
+  const startPositionOfTextCapture = match.index;
+  const capturedText = match[1];
+
   return {
-    pos: match.index,
-    end: selectionRegex.lastIndex
+    pos: startPositionOfTextCapture,
+    end: startPositionOfTextCapture + capturedText.length
   };
 }
 
@@ -96,9 +99,13 @@ export function parseInputFileForSelection(
     throw new Error(`Expected input file to have some text selected (using '[|...|]')'`);
   }
 
+  const textSelectionOrCursorPos =
+    textSelection.pos === textSelection.end ? textSelection.pos : textSelection;
+  const fileContentsWithoutSelectionText = removeSelectionFromFile(fileContentsWithTextSelection);
+
   return {
-    textSelection: textSelection.pos === textSelection.end ? textSelection.pos : textSelection,
-    fileContents: removeSelectionFromFile(fileContentsWithTextSelection)
+    textSelection: textSelectionOrCursorPos,
+    fileContents: fileContentsWithoutSelectionText
   };
 }
 
