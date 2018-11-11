@@ -81,7 +81,7 @@ export function tryGetClosestBinaryExpression(
     return startPositionBinaryExpression;
   }
 
-  const endPositionNode = tsutils.getTokenAtPosition(sourceFile, endSelectionPosition);
+  const endPositionNode = tsutils.getTokenAtPosition(sourceFile, endSelectionPosition - 1);
   if (endPositionNode === undefined) {
     logger.error(`No token at given position ${startSelectionPosition}`);
     return null;
