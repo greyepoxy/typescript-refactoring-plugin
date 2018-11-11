@@ -2,7 +2,7 @@ import * as tsutils from 'tsutils';
 import { Logger } from '../logger';
 import { findLargestPossibleBinaryExpressionParentNode } from './simplifyConditional';
 
-export function tryGetTargetExpression(
+export function tryGetClosestBinaryExpression(
   logger: Logger,
   sourceFile: ts.SourceFile,
   positionOrRange: number | ts.TextRange

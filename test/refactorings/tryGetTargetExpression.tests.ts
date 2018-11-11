@@ -1,6 +1,6 @@
 import { test } from 'ava';
 import * as ts from 'typescript/lib/tsserverlibrary';
-import { tryGetTargetExpression } from '../../src/refactorings/tryGetTargetExpression';
+import { tryGetClosestBinaryExpression } from '../../src/refactorings/tryGetTargetExpression';
 import { GetMockLogger, GetProgram, parseInputFileForSelection } from './mockLanguageService';
 
 test(`should return binary expression at cursor`, t => {
@@ -25,7 +25,11 @@ test(`should return binary expression at cursor`, t => {
     return;
   }
 
-  const node: ts.BinaryExpression = tryGetTargetExpression(logger, sourceFile, textSelection)!;
+  const node: ts.BinaryExpression = tryGetClosestBinaryExpression(
+    logger,
+    sourceFile,
+    textSelection
+  )!;
 
   t.notDeepEqual(node, null);
 

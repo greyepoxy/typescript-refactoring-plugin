@@ -1,6 +1,6 @@
 import * as ts from 'typescript/lib/tsserverlibrary';
 import { Logger } from '../logger';
-import { tryGetTargetExpression } from './tryGetTargetExpression';
+import { tryGetClosestBinaryExpression } from './tryGetTargetExpression';
 
 export const name = 'Simplify Conditional';
 export const simplifyConstantBooleanExpression = 'simplify_constant_boolean_expression';
@@ -138,7 +138,7 @@ export function getApplicableRefactors(
     return [];
   }
 
-  const booleanExpression = tryGetTargetExpression(logger, sourceFile, positionOrRange);
+  const booleanExpression = tryGetClosestBinaryExpression(logger, sourceFile, positionOrRange);
 
   if (booleanExpression == null) {
     return [];
@@ -182,7 +182,7 @@ export function getEditsForRefactor(
       return undefined;
     }
 
-    const booleanExpression = tryGetTargetExpression(logger, sourceFile, positionOrRange);
+    const booleanExpression = tryGetClosestBinaryExpression(logger, sourceFile, positionOrRange);
 
     if (booleanExpression == null) {
       return undefined;
