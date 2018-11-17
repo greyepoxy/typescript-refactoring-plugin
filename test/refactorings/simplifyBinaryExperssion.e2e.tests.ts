@@ -39,20 +39,6 @@ test(`should be able to simplify 'false && true'`, t => {
   );
 });
 
-test(`should be able to simplify '(true && false) || true'`, t => {
-  validateRefactoring(
-    `const some = [||](true && false) || true;`,
-    getApplicableRefactors,
-    getEditsForRefactor,
-    {
-      name: simplifyExpressionRefactoringName,
-      actionName: orExpressionIsAlwaysTrueRefactoring.getInfo().name
-    },
-    `const some = true;`,
-    t
-  );
-});
-
 test(`should be able to simplify 'true && a'`, t => {
   validateRefactoring(
     `const some = [||]true && a;`,
@@ -137,9 +123,37 @@ test(`should be able to simplify 'false || a'`, t => {
   );
 });
 
+test(`should be able to simplify '<something> || false'`, t => {
+  validateRefactoring(
+    `const some = [||](5 < a) || false;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyExpressionRefactoringName,
+      actionName: removeRedundentFalseKeywordInOrExpressionRefactoring.getInfo().name
+    },
+    `const some = (5 < a);`,
+    t
+  );
+});
+
 test(`should be able to simplify 'a || true'`, t => {
   validateRefactoring(
     `const some = [||]a || true;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyExpressionRefactoringName,
+      actionName: orExpressionIsAlwaysTrueRefactoring.getInfo().name
+    },
+    `const some = true;`,
+    t
+  );
+});
+
+test(`should be able to simplify '(true && false) || true'`, t => {
+  validateRefactoring(
+    `const some = [||](true && false) || true;`,
     getApplicableRefactors,
     getEditsForRefactor,
     {
@@ -161,20 +175,6 @@ test(`should be able to simplify 'true || a'`, t => {
       actionName: orExpressionIsAlwaysTrueRefactoring.getInfo().name
     },
     `const some = true;`,
-    t
-  );
-});
-
-test(`should be able to simplify '<something> || false'`, t => {
-  validateRefactoring(
-    `const some = [||](5 < a) || false;`,
-    getApplicableRefactors,
-    getEditsForRefactor,
-    {
-      name: simplifyExpressionRefactoringName,
-      actionName: removeRedundentFalseKeywordInOrExpressionRefactoring.getInfo().name
-    },
-    `const some = (5 < a);`,
     t
   );
 });
