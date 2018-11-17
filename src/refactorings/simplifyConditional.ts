@@ -118,21 +118,21 @@ function equalityExpressionIsAlwaysFalse(expression: ts.BinaryExpression): ts.Ex
 }
 
 function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expression | null {
-  const simplifyBinaryExpressionRefactorings = [
-    removeRedundentTrueKeywordInAndExpression,
-    andExpressionIsAlwaysFalse,
-    orExpressionIsAlwaysTrue,
-    removeRedundentFalseKeywordInOrExpression,
-    equalityExpressionIsAlwaysTrue,
-    equalityExpressionIsAlwaysFalse
-  ];
-
   const maybeFirstRefactoring = simplifyBinaryExpressionRefactorings
     .map(refactoringFunc => refactoringFunc(expression))
     .find((result: ts.Expression | null): result is ts.Expression => result !== null);
 
   return maybeFirstRefactoring !== undefined ? maybeFirstRefactoring : null;
 }
+
+const simplifyBinaryExpressionRefactorings = [
+  removeRedundentTrueKeywordInAndExpression,
+  andExpressionIsAlwaysFalse,
+  orExpressionIsAlwaysTrue,
+  removeRedundentFalseKeywordInOrExpression,
+  equalityExpressionIsAlwaysTrue,
+  equalityExpressionIsAlwaysFalse
+];
 
 export function getApplicableRefactors(
   program: ts.Program,
