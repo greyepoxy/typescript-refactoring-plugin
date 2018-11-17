@@ -36,6 +36,19 @@ function removeRedundentTrueKeywordInAndExpression(
   return null;
 }
 
+function expressionAlwaysFalse(expression: ts.BinaryExpression): ts.Expression | null {
+  if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
+    if (
+      expression.left.kind === ts.SyntaxKind.FalseKeyword ||
+      expression.right.kind === ts.SyntaxKind.FalseKeyword
+    ) {
+      return ts.createFalse();
+    }
+  }
+
+  return null;
+}
+
 function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expression | null {
   const removeRedundentTrueKeywordInAndExpressionResult = removeRedundentTrueKeywordInAndExpression(
     expression
@@ -44,13 +57,9 @@ function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expressio
     return removeRedundentTrueKeywordInAndExpressionResult;
   }
 
-  if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
-    if (
-      expression.left.kind === ts.SyntaxKind.FalseKeyword ||
-      expression.right.kind === ts.SyntaxKind.FalseKeyword
-    ) {
-      return ts.createFalse();
-    }
+  const expressionAlwaysFalseResult = expressionAlwaysFalse(expression);
+  if (expressionAlwaysFalseResult !== null) {
+    return expressionAlwaysFalseResult;
   }
 
   if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
