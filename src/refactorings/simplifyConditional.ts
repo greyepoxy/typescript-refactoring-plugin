@@ -117,12 +117,10 @@ function equalityExpressionIsAlwaysFalse(expression: ts.BinaryExpression): ts.Ex
   return null;
 }
 
-function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expression | null {
-  const maybeFirstRefactoring = simplifyBinaryExpressionRefactorings
+function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expression[] {
+  return simplifyBinaryExpressionRefactorings
     .map(refactoringFunc => refactoringFunc(expression))
-    .find((result: ts.Expression | null): result is ts.Expression => result !== null);
-
-  return maybeFirstRefactoring !== undefined ? maybeFirstRefactoring : null;
+    .filter((result: ts.Expression | null): result is ts.Expression => result !== null);
 }
 
 const simplifyBinaryExpressionRefactorings = [
@@ -153,9 +151,9 @@ export function getApplicableRefactors(
     return [];
   }
 
-  const maybeSimplifiedBooleanExpression = simplifyBinaryExpression(booleanExpression);
+  const simplifiedBinaryExpressionRefactorings = simplifyBinaryExpression(booleanExpression);
 
-  if (maybeSimplifiedBooleanExpression !== null) {
+  return simplifiedBinaryExpressionRefactorings.map(_refactoringResult => {
     const start = formatLineAndChar(
       sourceFile.getLineAndCharacterOfPosition(booleanExpression.pos)
     );
@@ -164,10 +162,8 @@ export function getApplicableRefactors(
       `Can simplify binary expression '${booleanExpression.getText()}' at [${start}, ${end}]`
     );
 
-    return [simplifyConditionalRefactoring];
-  }
-
-  return [];
+    return simplifyConditionalRefactoring;
+  });
 }
 
 export function getEditsForRefactor(
@@ -197,10 +193,10 @@ export function getEditsForRefactor(
       return undefined;
     }
 
-    const maybeSimplifiedBooleanExpression = simplifyBinaryExpression(booleanExpression);
+    const simplifiedBinaryExpressionRefactorings = simplifyBinaryExpression(booleanExpression);
 
-    if (maybeSimplifiedBooleanExpression !== null) {
-      const newText = ` ${getNodeText(maybeSimplifiedBooleanExpression, sourceFile)}`;
+    const edits = simplifiedBinaryExpressionRefactorings.map(refactoringResult => {
+      const newText = ` ${getNodeText(refactoringResult, sourceFile)}`;
 
       return {
         edits: [
@@ -220,6 +216,10 @@ export function getEditsForRefactor(
         renameFilename: undefined,
         renameLocation: undefined
       };
+    });
+
+    if (edits.length !== 0) {
+      return edits[0];
     }
 
     logger.error(`Unable to perform requested ${refactorName} action ${actionName}`);
