@@ -117,12 +117,6 @@ function equalityExpressionIsAlwaysFalse(expression: ts.BinaryExpression): ts.Ex
   return null;
 }
 
-function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expression[] {
-  return simplifyBinaryExpressionRefactorings
-    .map(refactoringFunc => refactoringFunc(expression))
-    .filter((result: ts.Expression | null): result is ts.Expression => result !== null);
-}
-
 const simplifyBinaryExpressionRefactorings = [
   removeRedundentTrueKeywordInAndExpression,
   andExpressionIsAlwaysFalse,
@@ -151,7 +145,9 @@ export function getApplicableRefactors(
     return [];
   }
 
-  const simplifiedBinaryExpressionRefactorings = simplifyBinaryExpression(booleanExpression);
+  const simplifiedBinaryExpressionRefactorings = simplifyBinaryExpressionRefactorings
+    .map(refactoringFunc => refactoringFunc(booleanExpression))
+    .filter((result: ts.Expression | null): result is ts.Expression => result !== null);
 
   return simplifiedBinaryExpressionRefactorings.map(_refactoringResult => {
     const start = formatLineAndChar(
@@ -193,7 +189,9 @@ export function getEditsForRefactor(
       return undefined;
     }
 
-    const simplifiedBinaryExpressionRefactorings = simplifyBinaryExpression(booleanExpression);
+    const simplifiedBinaryExpressionRefactorings = simplifyBinaryExpressionRefactorings
+      .map(refactoringFunc => refactoringFunc(booleanExpression))
+      .filter((result: ts.Expression | null): result is ts.Expression => result !== null);
 
     const edits = simplifiedBinaryExpressionRefactorings.map(refactoringResult => {
       const newText = ` ${getNodeText(refactoringResult, sourceFile)}`;
