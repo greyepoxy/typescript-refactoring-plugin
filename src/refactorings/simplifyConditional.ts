@@ -99,6 +99,24 @@ function equalityExpressionIsAlwaysTrue(expression: ts.BinaryExpression): ts.Exp
   return null;
 }
 
+function equalityExpressionIsAlwaysFalse(expression: ts.BinaryExpression): ts.Expression | null {
+  if (
+    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
+    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken
+  ) {
+    if (
+      (expression.left.kind === ts.SyntaxKind.TrueKeyword &&
+        expression.right.kind === ts.SyntaxKind.FalseKeyword) ||
+      (expression.left.kind === ts.SyntaxKind.FalseKeyword &&
+        expression.right.kind === ts.SyntaxKind.TrueKeyword)
+    ) {
+      return ts.createFalse();
+    }
+  }
+
+  return null;
+}
+
 function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expression | null {
   const removeRedundentTrueKeywordInAndExpressionResult = removeRedundentTrueKeywordInAndExpression(
     expression
@@ -129,18 +147,9 @@ function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expressio
     return equalityExpressionIsAlwaysTrueResult;
   }
 
-  if (
-    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
-    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken
-  ) {
-    if (
-      (expression.left.kind === ts.SyntaxKind.TrueKeyword &&
-        expression.right.kind === ts.SyntaxKind.FalseKeyword) ||
-      (expression.left.kind === ts.SyntaxKind.FalseKeyword &&
-        expression.right.kind === ts.SyntaxKind.TrueKeyword)
-    ) {
-      return ts.createFalse();
-    }
+  const equalityExpressionIsAlwaysFalseResult = equalityExpressionIsAlwaysFalse(expression);
+  if (equalityExpressionIsAlwaysFalseResult !== null) {
+    return equalityExpressionIsAlwaysFalseResult;
   }
 
   return null;
