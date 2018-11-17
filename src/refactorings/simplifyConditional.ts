@@ -1,129 +1,158 @@
 import * as ts from 'typescript/lib/tsserverlibrary';
 import { Logger } from '../logger';
+import { RefactoringAction, RefactoringResult } from './refactoring';
 import { tryGetClosestBinaryExpression } from './tryGetTargetExpression';
 
-export const name = 'Simplify Conditional';
-export const simplifyConstantBooleanExpression = 'simplify_constant_boolean_expression';
+export const simplifyExpressionRefactoringName = 'simplify_expression';
 
-export const simplifyConditionalRefactoring: ts.ApplicableRefactorInfo = {
-  name,
-  description: 'Simplify this conditional',
-  actions: [
-    {
-      name: simplifyConstantBooleanExpression,
-      description: 'Remove extra constants from boolean expression'
-    }
-  ]
+export const tryGetSimplifyConditionalRefactoring = (
+  actions: ts.RefactorActionInfo[]
+): ts.ApplicableRefactorInfo[] => {
+  return actions.length !== 0
+    ? [
+        {
+          name: simplifyExpressionRefactoringName,
+          description: 'Simplify Expression',
+          actions
+        }
+      ]
+    : [];
 };
 
 function formatLineAndChar(lineAndChar: ts.LineAndCharacter): string {
   return `(${lineAndChar.line}, ${lineAndChar.character})`;
 }
 
-function removeRedundentTrueKeywordInAndExpression(
-  expression: ts.BinaryExpression
-): ts.Expression | null {
-  if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
-    if (expression.left.kind === ts.SyntaxKind.TrueKeyword) {
-      return expression.right;
+export const removeRedundentTrueKeywordInAndExpressionRefactoring = new RefactoringAction(
+  'remove_redundant_true_keyword_in_and_expression',
+  'remove redundant true keyword from expression',
+  tryGetClosestBinaryExpression,
+  (expression: ts.BinaryExpression): ts.Expression | null => {
+    if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
+      if (expression.left.kind === ts.SyntaxKind.TrueKeyword) {
+        return expression.right;
+      }
+
+      if (expression.right.kind === ts.SyntaxKind.TrueKeyword) {
+        return expression.left;
+      }
     }
 
-    if (expression.right.kind === ts.SyntaxKind.TrueKeyword) {
-      return expression.left;
-    }
+    return null;
   }
+);
 
-  return null;
-}
+export const removeRedundentFalseKeywordInOrExpressionRefactoring = new RefactoringAction(
+  'remove_redundant_false_keyword_in_or_expression',
+  'remove redundant false keyword from or expression',
+  tryGetClosestBinaryExpression,
+  (expression: ts.BinaryExpression): ts.Expression | null => {
+    if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
+      if (expression.left.kind === ts.SyntaxKind.FalseKeyword) {
+        return expression.right;
+      }
 
-function removeRedundentFalseKeywordInOrExpression(
-  expression: ts.BinaryExpression
-): ts.Expression | null {
-  if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
-    if (expression.left.kind === ts.SyntaxKind.FalseKeyword) {
-      return expression.right;
+      if (expression.right.kind === ts.SyntaxKind.FalseKeyword) {
+        return expression.left;
+      }
     }
 
-    if (expression.right.kind === ts.SyntaxKind.FalseKeyword) {
-      return expression.left;
-    }
+    return null;
   }
+);
 
-  return null;
-}
+export const andExpressionIsAlwaysFalseRefactoring = new RefactoringAction(
+  'and_expression_is_always_false',
+  'expression is always false',
+  tryGetClosestBinaryExpression,
+  (expression: ts.BinaryExpression): ts.Expression | null => {
+    if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
+      if (
+        expression.left.kind === ts.SyntaxKind.FalseKeyword ||
+        expression.right.kind === ts.SyntaxKind.FalseKeyword
+      ) {
+        return ts.createFalse();
+      }
+    }
 
-function andExpressionIsAlwaysFalse(expression: ts.BinaryExpression): ts.Expression | null {
-  if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
+    return null;
+  }
+);
+
+export const orExpressionIsAlwaysTrueRefactoring = new RefactoringAction(
+  'or_expression_is_always_true',
+  'expression is always true',
+  tryGetClosestBinaryExpression,
+  (expression: ts.BinaryExpression): ts.Expression | null => {
+    if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
+      if (
+        expression.left.kind === ts.SyntaxKind.TrueKeyword ||
+        expression.right.kind === ts.SyntaxKind.TrueKeyword
+      ) {
+        return ts.createTrue();
+      }
+    }
+
+    return null;
+  }
+);
+
+export const equalityExpressionIsAlwaysTrueRefactoring = new RefactoringAction(
+  'equality_expression_is_always_true',
+  'expression is always true',
+  tryGetClosestBinaryExpression,
+  (expression: ts.BinaryExpression): ts.Expression | null => {
     if (
-      expression.left.kind === ts.SyntaxKind.FalseKeyword ||
-      expression.right.kind === ts.SyntaxKind.FalseKeyword
+      expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
+      expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken
     ) {
-      return ts.createFalse();
+      if (
+        (expression.left.kind === ts.SyntaxKind.TrueKeyword &&
+          expression.right.kind === ts.SyntaxKind.TrueKeyword) ||
+        (expression.left.kind === ts.SyntaxKind.FalseKeyword &&
+          expression.right.kind === ts.SyntaxKind.FalseKeyword) ||
+        (ts.isIdentifier(expression.left) &&
+          ts.isIdentifier(expression.right) &&
+          expression.left.text === expression.right.text)
+      ) {
+        return ts.createTrue();
+      }
     }
+
+    return null;
   }
+);
 
-  return null;
-}
-
-function orExpressionIsAlwaysTrue(expression: ts.BinaryExpression): ts.Expression | null {
-  if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
+export const equalityExpressionIsAlwaysFalseRefactoring = new RefactoringAction(
+  'equality_expression_is_always_false',
+  'expression is always false',
+  tryGetClosestBinaryExpression,
+  (expression: ts.BinaryExpression): ts.Expression | null => {
     if (
-      expression.left.kind === ts.SyntaxKind.TrueKeyword ||
-      expression.right.kind === ts.SyntaxKind.TrueKeyword
+      expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
+      expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken
     ) {
-      return ts.createTrue();
+      if (
+        (expression.left.kind === ts.SyntaxKind.TrueKeyword &&
+          expression.right.kind === ts.SyntaxKind.FalseKeyword) ||
+        (expression.left.kind === ts.SyntaxKind.FalseKeyword &&
+          expression.right.kind === ts.SyntaxKind.TrueKeyword)
+      ) {
+        return ts.createFalse();
+      }
     }
+
+    return null;
   }
-
-  return null;
-}
-
-function equalityExpressionIsAlwaysTrue(expression: ts.BinaryExpression): ts.Expression | null {
-  if (
-    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
-    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken
-  ) {
-    if (
-      (expression.left.kind === ts.SyntaxKind.TrueKeyword &&
-        expression.right.kind === ts.SyntaxKind.TrueKeyword) ||
-      (expression.left.kind === ts.SyntaxKind.FalseKeyword &&
-        expression.right.kind === ts.SyntaxKind.FalseKeyword) ||
-      (ts.isIdentifier(expression.left) &&
-        ts.isIdentifier(expression.right) &&
-        expression.left.text === expression.right.text)
-    ) {
-      return ts.createTrue();
-    }
-  }
-
-  return null;
-}
-
-function equalityExpressionIsAlwaysFalse(expression: ts.BinaryExpression): ts.Expression | null {
-  if (
-    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
-    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken
-  ) {
-    if (
-      (expression.left.kind === ts.SyntaxKind.TrueKeyword &&
-        expression.right.kind === ts.SyntaxKind.FalseKeyword) ||
-      (expression.left.kind === ts.SyntaxKind.FalseKeyword &&
-        expression.right.kind === ts.SyntaxKind.TrueKeyword)
-    ) {
-      return ts.createFalse();
-    }
-  }
-
-  return null;
-}
+);
 
 const simplifyBinaryExpressionRefactorings = [
-  removeRedundentTrueKeywordInAndExpression,
-  andExpressionIsAlwaysFalse,
-  orExpressionIsAlwaysTrue,
-  removeRedundentFalseKeywordInOrExpression,
-  equalityExpressionIsAlwaysTrue,
-  equalityExpressionIsAlwaysFalse
+  removeRedundentTrueKeywordInAndExpressionRefactoring,
+  removeRedundentFalseKeywordInOrExpressionRefactoring,
+  andExpressionIsAlwaysFalseRefactoring,
+  orExpressionIsAlwaysTrueRefactoring,
+  equalityExpressionIsAlwaysTrueRefactoring,
+  equalityExpressionIsAlwaysFalseRefactoring
 ];
 
 export function getApplicableRefactors(
@@ -139,28 +168,28 @@ export function getApplicableRefactors(
     return [];
   }
 
-  const booleanExpression = tryGetClosestBinaryExpression(logger, sourceFile, positionOrRange);
-
-  if (booleanExpression == null) {
-    return [];
-  }
-
-  return simplifyBinaryExpressionRefactorings
-    .map(refactoringFunc => refactoringFunc(booleanExpression))
-    .filter((result: ts.Expression | null): result is ts.Expression => result !== null)
-    .map(_refactoringResult => {
+  const refactoringActions = simplifyBinaryExpressionRefactorings
+    .map(refactoring => refactoring.attemptRefactoring(logger, sourceFile, positionOrRange))
+    .filter(
+      (
+        result: RefactoringResult<ts.BinaryExpression, ts.Expression> | null
+      ): result is RefactoringResult<ts.BinaryExpression, ts.Expression> => result !== null
+    )
+    .map(refactoringResult => {
       const start = formatLineAndChar(
-        sourceFile.getLineAndCharacterOfPosition(booleanExpression.pos)
+        sourceFile.getLineAndCharacterOfPosition(refactoringResult.matched.pos)
       );
       const end = formatLineAndChar(
-        sourceFile.getLineAndCharacterOfPosition(booleanExpression.end)
+        sourceFile.getLineAndCharacterOfPosition(refactoringResult.matched.end)
       );
       logger.info(
-        `Can simplify binary expression '${booleanExpression.getText()}' at [${start}, ${end}]`
+        `Can simplify binary expression '${refactoringResult.matched.getText()}' at [${start}, ${end}]`
       );
 
-      return simplifyConditionalRefactoring;
+      return refactoringResult.appliedRefactoringAction.getInfo();
     });
+
+  return tryGetSimplifyConditionalRefactoring(refactoringActions);
 }
 
 export function getEditsForRefactor(
@@ -173,59 +202,56 @@ export function getEditsForRefactor(
   actionName: string,
   _preferences: ts.UserPreferences | undefined
 ): ts.RefactorEditInfo | undefined {
-  if (refactorName !== name) {
+  if (refactorName !== simplifyExpressionRefactoringName) {
     return undefined;
   }
 
-  if (actionName === simplifyConstantBooleanExpression) {
-    const sourceFile = program.getSourceFile(fileName);
-    if (sourceFile === undefined) {
-      logger.error(`cannot load source file ${fileName}`);
-      return undefined;
-    }
+  const matchingRefactoring = simplifyBinaryExpressionRefactorings.find(
+    refactoring => refactoring.name === actionName
+  );
 
-    const booleanExpression = tryGetClosestBinaryExpression(logger, sourceFile, positionOrRange);
+  if (matchingRefactoring === undefined) {
+    logger.error(`Cannot find ${refactorName} action ${actionName}`);
+    return undefined;
+  }
 
-    if (booleanExpression == null) {
-      return undefined;
-    }
+  const sourceFile = program.getSourceFile(fileName);
+  if (sourceFile === undefined) {
+    logger.error(`cannot load source file ${fileName}`);
+    return undefined;
+  }
 
-    const edits = simplifyBinaryExpressionRefactorings
-      .map(refactoringFunc => refactoringFunc(booleanExpression))
-      .filter((result: ts.Expression | null): result is ts.Expression => result !== null)
-      .map(refactoringResult => {
-        const newText = ` ${getNodeText(refactoringResult, sourceFile)}`;
+  const refactoringResult = matchingRefactoring.attemptRefactoring(
+    logger,
+    sourceFile,
+    positionOrRange
+  );
 
-        return {
-          edits: [
-            {
-              fileName: sourceFile.fileName,
-              textChanges: [
-                {
-                  span: {
-                    start: booleanExpression.left.pos,
-                    length: booleanExpression.right.end - booleanExpression.left.pos
-                  },
-                  newText
-                }
-              ]
-            }
-          ],
-          renameFilename: undefined,
-          renameLocation: undefined
-        };
-      });
-
-    if (edits.length !== 0) {
-      return edits[0];
-    }
-
+  if (refactoringResult === null) {
     logger.error(`Unable to perform requested ${refactorName} action ${actionName}`);
     return undefined;
   }
 
-  logger.error(`Received request to perform unknown ${refactorName} action ${actionName}`);
-  return undefined;
+  const newText = ` ${getNodeText(refactoringResult.result, sourceFile)}`;
+
+  return {
+    edits: [
+      {
+        fileName: sourceFile.fileName,
+        textChanges: [
+          {
+            span: {
+              start: refactoringResult.matched.pos,
+              length: refactoringResult.matched.end - refactoringResult.matched.pos
+            },
+            newText
+          }
+        ]
+      }
+    ],
+    renameFilename: undefined,
+    renameLocation: undefined
+  };
 }
 
 function getNodeText(node: ts.Node, sourceFile: ts.SourceFile): string {
