@@ -34,6 +34,6 @@ test('[e2e] should return plugin defined refactorings', t => {
     const completionsResponse = server.getFirstResponseOfType('getApplicableRefactors');
     t.not(completionsResponse, undefined);
     t.is(completionsResponse.body.length, 1);
-    t.deepEqual(completionsResponse.body[0].name, 'Simplify Conditional');
+    t.deepEqual(completionsResponse.body[0].name, 'simplify_expression');
   });
 });

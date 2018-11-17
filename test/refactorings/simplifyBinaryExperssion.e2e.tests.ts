@@ -1,10 +1,14 @@
 import { test } from 'ava';
 import {
+  andExpressionIsAlwaysFalseRefactoring,
+  equalityExpressionIsAlwaysTrueRefactoring,
   getApplicableRefactors,
   getEditsForRefactor,
-  simplifyConditionalRefactoring,
-  simplifyConstantBooleanExpression
-} from '../../src/refactorings/simplifyConditional';
+  orExpressionIsAlwaysTrueRefactoring,
+  removeRedundentFalseKeywordInOrExpressionRefactoring,
+  removeRedundentTrueKeywordInAndExpressionRefactoring,
+  simplifyExpressionRefactoringName
+} from '../../src/refactorings/simplifyBinaryExpression';
 import { validateNoRefactoringOptions, validateRefactoring } from './validateRefactoring';
 
 test(`should be able to simplify 'true && true'`, t => {
@@ -13,8 +17,8 @@ test(`should be able to simplify 'true && true'`, t => {
     getApplicableRefactors,
     getEditsForRefactor,
     {
-      name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConstantBooleanExpression
+      name: simplifyExpressionRefactoringName,
+      actionName: removeRedundentTrueKeywordInAndExpressionRefactoring.getInfo().name
     },
     `const some = true;`,
     t
@@ -27,24 +31,10 @@ test(`should be able to simplify 'false && true'`, t => {
     getApplicableRefactors,
     getEditsForRefactor,
     {
-      name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConstantBooleanExpression
+      name: simplifyExpressionRefactoringName,
+      actionName: removeRedundentTrueKeywordInAndExpressionRefactoring.getInfo().name
     },
     `const some = false;`,
-    t
-  );
-});
-
-test(`should be able to simplify '(true && false) || true'`, t => {
-  validateRefactoring(
-    `const some = [||](true && false) || true;`,
-    getApplicableRefactors,
-    getEditsForRefactor,
-    {
-      name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConstantBooleanExpression
-    },
-    `const some = true;`,
     t
   );
 });
@@ -55,8 +45,8 @@ test(`should be able to simplify 'true && a'`, t => {
     getApplicableRefactors,
     getEditsForRefactor,
     {
-      name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConstantBooleanExpression
+      name: simplifyExpressionRefactoringName,
+      actionName: removeRedundentTrueKeywordInAndExpressionRefactoring.getInfo().name
     },
     `const some = a;`,
     t
@@ -69,8 +59,8 @@ test(`should be able to simplify 'a && true'`, t => {
     getApplicableRefactors,
     getEditsForRefactor,
     {
-      name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConstantBooleanExpression
+      name: simplifyExpressionRefactoringName,
+      actionName: removeRedundentTrueKeywordInAndExpressionRefactoring.getInfo().name
     },
     `const some = a;`,
     t
@@ -83,8 +73,8 @@ test(`should be able to simplify 'a && false'`, t => {
     getApplicableRefactors,
     getEditsForRefactor,
     {
-      name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConstantBooleanExpression
+      name: simplifyExpressionRefactoringName,
+      actionName: andExpressionIsAlwaysFalseRefactoring.getInfo().name
     },
     `const some = false;`,
     t
@@ -97,8 +87,8 @@ test(`should be able to simplify 'false && a'`, t => {
     getApplicableRefactors,
     getEditsForRefactor,
     {
-      name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConstantBooleanExpression
+      name: simplifyExpressionRefactoringName,
+      actionName: andExpressionIsAlwaysFalseRefactoring.getInfo().name
     },
     `const some = false;`,
     t
@@ -111,8 +101,8 @@ test(`should be able to simplify 'a || false'`, t => {
     getApplicableRefactors,
     getEditsForRefactor,
     {
-      name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConstantBooleanExpression
+      name: simplifyExpressionRefactoringName,
+      actionName: removeRedundentFalseKeywordInOrExpressionRefactoring.getInfo().name
     },
     `const some = a;`,
     t
@@ -125,10 +115,24 @@ test(`should be able to simplify 'false || a'`, t => {
     getApplicableRefactors,
     getEditsForRefactor,
     {
-      name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConstantBooleanExpression
+      name: simplifyExpressionRefactoringName,
+      actionName: removeRedundentFalseKeywordInOrExpressionRefactoring.getInfo().name
     },
     `const some = a;`,
+    t
+  );
+});
+
+test(`should be able to simplify '<something> || false'`, t => {
+  validateRefactoring(
+    `const some = [||](5 < a) || false;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyExpressionRefactoringName,
+      actionName: removeRedundentFalseKeywordInOrExpressionRefactoring.getInfo().name
+    },
+    `const some = (5 < a);`,
     t
   );
 });
@@ -139,8 +143,22 @@ test(`should be able to simplify 'a || true'`, t => {
     getApplicableRefactors,
     getEditsForRefactor,
     {
-      name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConstantBooleanExpression
+      name: simplifyExpressionRefactoringName,
+      actionName: orExpressionIsAlwaysTrueRefactoring.getInfo().name
+    },
+    `const some = true;`,
+    t
+  );
+});
+
+test(`should be able to simplify '(true && false) || true'`, t => {
+  validateRefactoring(
+    `const some = [||](true && false) || true;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyExpressionRefactoringName,
+      actionName: orExpressionIsAlwaysTrueRefactoring.getInfo().name
     },
     `const some = true;`,
     t
@@ -153,24 +171,10 @@ test(`should be able to simplify 'true || a'`, t => {
     getApplicableRefactors,
     getEditsForRefactor,
     {
-      name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConstantBooleanExpression
+      name: simplifyExpressionRefactoringName,
+      actionName: orExpressionIsAlwaysTrueRefactoring.getInfo().name
     },
     `const some = true;`,
-    t
-  );
-});
-
-test(`should be able to simplify '<something> || false'`, t => {
-  validateRefactoring(
-    `const some = [||](5 < a) || false;`,
-    getApplicableRefactors,
-    getEditsForRefactor,
-    {
-      name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConstantBooleanExpression
-    },
-    `const some = (5 < a);`,
     t
   );
 });
@@ -181,8 +185,8 @@ test(`should be able to simplify 'a == a' tautology`, t => {
     getApplicableRefactors,
     getEditsForRefactor,
     {
-      name: simplifyConditionalRefactoring.name,
-      actionName: simplifyConstantBooleanExpression
+      name: simplifyExpressionRefactoringName,
+      actionName: equalityExpressionIsAlwaysTrueRefactoring.getInfo().name
     },
     `const some = true;`,
     t

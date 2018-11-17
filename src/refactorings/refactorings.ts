@@ -2,7 +2,7 @@ import { Logger } from '../logger';
 import {
   getApplicableRefactors as getApplicableSimplifyConditionalRefactors,
   getEditsForRefactor as getEditsForSimplifyConditionalRefactors
-} from './simplifyConditional';
+} from './simplifyBinaryExpression';
 
 const noProgramError =
   'Cannot get the current Program this could be because tsc is running in syntaxOnly mode, unable to provide refactorings';
