@@ -20,17 +20,28 @@ function formatLineAndChar(lineAndChar: ts.LineAndCharacter): string {
   return `(${lineAndChar.line}, ${lineAndChar.character})`;
 }
 
-function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expression | null {
+function removeRedundentTrueKeywordInAndExpression(
+  expression: ts.BinaryExpression
+): ts.Expression | null {
   if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
     if (expression.left.kind === ts.SyntaxKind.TrueKeyword) {
       return expression.right;
     }
-  }
 
-  if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
     if (expression.right.kind === ts.SyntaxKind.TrueKeyword) {
       return expression.left;
     }
+  }
+
+  return null;
+}
+
+function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expression | null {
+  const removeRedundentTrueKeywordInAndExpressionResult = removeRedundentTrueKeywordInAndExpression(
+    expression
+  );
+  if (removeRedundentTrueKeywordInAndExpressionResult !== null) {
+    return removeRedundentTrueKeywordInAndExpressionResult;
   }
 
   if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
