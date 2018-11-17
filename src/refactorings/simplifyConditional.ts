@@ -78,6 +78,27 @@ function expressionAlwaysTrue(expression: ts.BinaryExpression): ts.Expression | 
   return null;
 }
 
+function equalityExpressionIsAlwaysTrue(expression: ts.BinaryExpression): ts.Expression | null {
+  if (
+    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
+    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken
+  ) {
+    if (
+      (expression.left.kind === ts.SyntaxKind.TrueKeyword &&
+        expression.right.kind === ts.SyntaxKind.TrueKeyword) ||
+      (expression.left.kind === ts.SyntaxKind.FalseKeyword &&
+        expression.right.kind === ts.SyntaxKind.FalseKeyword) ||
+      (ts.isIdentifier(expression.left) &&
+        ts.isIdentifier(expression.right) &&
+        expression.left.text === expression.right.text)
+    ) {
+      return ts.createTrue();
+    }
+  }
+
+  return null;
+}
+
 function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expression | null {
   const removeRedundentTrueKeywordInAndExpressionResult = removeRedundentTrueKeywordInAndExpression(
     expression
@@ -103,21 +124,9 @@ function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expressio
     return removeRedundentFalseKeywordInAndExpressionResult;
   }
 
-  if (
-    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
-    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken
-  ) {
-    if (
-      (expression.left.kind === ts.SyntaxKind.TrueKeyword &&
-        expression.right.kind === ts.SyntaxKind.TrueKeyword) ||
-      (expression.left.kind === ts.SyntaxKind.FalseKeyword &&
-        expression.right.kind === ts.SyntaxKind.FalseKeyword) ||
-      (ts.isIdentifier(expression.left) &&
-        ts.isIdentifier(expression.right) &&
-        expression.left.text === expression.right.text)
-    ) {
-      return ts.createTrue();
-    }
+  const equalityExpressionIsAlwaysTrueResult = equalityExpressionIsAlwaysTrue(expression);
+  if (equalityExpressionIsAlwaysTrueResult !== null) {
+    return equalityExpressionIsAlwaysTrueResult;
   }
 
   if (
