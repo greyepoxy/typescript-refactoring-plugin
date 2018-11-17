@@ -20,7 +20,7 @@ function formatLineAndChar(lineAndChar: ts.LineAndCharacter): string {
   return `(${lineAndChar.line}, ${lineAndChar.character})`;
 }
 
-function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expression {
+function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expression | null {
   if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
     if (expression.left.kind === ts.SyntaxKind.TrueKeyword) {
       return expression.right;
@@ -94,7 +94,7 @@ function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expressio
     }
   }
 
-  return ts.updateBinary(expression, expression.left, expression.right);
+  return null;
 }
 
 export function getApplicableRefactors(
@@ -118,7 +118,7 @@ export function getApplicableRefactors(
 
   const maybeSimplifiedBooleanExpression = simplifyBinaryExpression(booleanExpression);
 
-  if (booleanExpression !== maybeSimplifiedBooleanExpression) {
+  if (maybeSimplifiedBooleanExpression !== null) {
     const start = formatLineAndChar(
       sourceFile.getLineAndCharacterOfPosition(booleanExpression.pos)
     );
@@ -162,7 +162,7 @@ export function getEditsForRefactor(
 
     const maybeSimplifiedBooleanExpression = simplifyBinaryExpression(booleanExpression);
 
-    if (booleanExpression !== maybeSimplifiedBooleanExpression) {
+    if (maybeSimplifiedBooleanExpression !== null) {
       const newText = ` ${getNodeText(maybeSimplifiedBooleanExpression, sourceFile)}`;
 
       return {
