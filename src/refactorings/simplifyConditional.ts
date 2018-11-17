@@ -36,6 +36,22 @@ function removeRedundentTrueKeywordInAndExpression(
   return null;
 }
 
+function removeRedundentFalseKeywordInOrExpression(
+  expression: ts.BinaryExpression
+): ts.Expression | null {
+  if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
+    if (expression.left.kind === ts.SyntaxKind.FalseKeyword) {
+      return expression.right;
+    }
+
+    if (expression.right.kind === ts.SyntaxKind.FalseKeyword) {
+      return expression.left;
+    }
+  }
+
+  return null;
+}
+
 function expressionAlwaysFalse(expression: ts.BinaryExpression): ts.Expression | null {
   if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
     if (
@@ -80,16 +96,11 @@ function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expressio
     return expressionAlwaysTrueResult;
   }
 
-  if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
-    if (expression.left.kind === ts.SyntaxKind.FalseKeyword) {
-      return expression.right;
-    }
-  }
-
-  if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
-    if (expression.right.kind === ts.SyntaxKind.FalseKeyword) {
-      return expression.left;
-    }
+  const removeRedundentFalseKeywordInAndExpressionResult = removeRedundentFalseKeywordInOrExpression(
+    expression
+  );
+  if (removeRedundentFalseKeywordInAndExpressionResult !== null) {
+    return removeRedundentFalseKeywordInAndExpressionResult;
   }
 
   if (
