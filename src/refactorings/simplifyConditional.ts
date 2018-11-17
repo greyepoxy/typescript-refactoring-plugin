@@ -118,41 +118,20 @@ function equalityExpressionIsAlwaysFalse(expression: ts.BinaryExpression): ts.Ex
 }
 
 function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expression | null {
-  const removeRedundentTrueKeywordInAndExpressionResult = removeRedundentTrueKeywordInAndExpression(
-    expression
-  );
-  if (removeRedundentTrueKeywordInAndExpressionResult !== null) {
-    return removeRedundentTrueKeywordInAndExpressionResult;
-  }
+  const simplifyBinaryExpressionRefactorings = [
+    removeRedundentTrueKeywordInAndExpression,
+    andExpressionIsAlwaysFalse,
+    orExpressionIsAlwaysTrue,
+    removeRedundentFalseKeywordInOrExpression,
+    equalityExpressionIsAlwaysTrue,
+    equalityExpressionIsAlwaysFalse
+  ];
 
-  const andExpressionIsAlwaysFalseResult = andExpressionIsAlwaysFalse(expression);
-  if (andExpressionIsAlwaysFalseResult !== null) {
-    return andExpressionIsAlwaysFalseResult;
-  }
+  const maybeFirstRefactoring = simplifyBinaryExpressionRefactorings
+    .map(refactoringFunc => refactoringFunc(expression))
+    .find((result: ts.Expression | null): result is ts.Expression => result !== null);
 
-  const orExpressionIsAlwaysTrueResult = orExpressionIsAlwaysTrue(expression);
-  if (orExpressionIsAlwaysTrueResult !== null) {
-    return orExpressionIsAlwaysTrueResult;
-  }
-
-  const removeRedundentFalseKeywordInAndExpressionResult = removeRedundentFalseKeywordInOrExpression(
-    expression
-  );
-  if (removeRedundentFalseKeywordInAndExpressionResult !== null) {
-    return removeRedundentFalseKeywordInAndExpressionResult;
-  }
-
-  const equalityExpressionIsAlwaysTrueResult = equalityExpressionIsAlwaysTrue(expression);
-  if (equalityExpressionIsAlwaysTrueResult !== null) {
-    return equalityExpressionIsAlwaysTrueResult;
-  }
-
-  const equalityExpressionIsAlwaysFalseResult = equalityExpressionIsAlwaysFalse(expression);
-  if (equalityExpressionIsAlwaysFalseResult !== null) {
-    return equalityExpressionIsAlwaysFalseResult;
-  }
-
-  return null;
+  return maybeFirstRefactoring !== undefined ? maybeFirstRefactoring : null;
 }
 
 export function getApplicableRefactors(
