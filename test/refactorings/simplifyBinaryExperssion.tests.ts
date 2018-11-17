@@ -8,7 +8,7 @@ import {
   removeRedundentFalseKeywordInOrExpressionRefactoring,
   removeRedundentTrueKeywordInAndExpressionRefactoring,
   simplifyExpressionRefactoringName
-} from '../../src/refactorings/simplifyConditional';
+} from '../../src/refactorings/simplifyBinaryExpression';
 import { validateNoRefactoringOptions, validateRefactoring } from './validateRefactoring';
 
 test(`should be able to simplify 'true && true'`, t => {
