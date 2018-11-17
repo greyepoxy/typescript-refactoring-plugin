@@ -20,34 +20,23 @@ function formatLineAndChar(lineAndChar: ts.LineAndCharacter): string {
   return `(${lineAndChar.line}, ${lineAndChar.character})`;
 }
 
-function simplifyExpression(expression: ts.Expression): ts.Expression {
-  if (ts.isBinaryExpression(expression)) {
-    return simplifyBinaryExpression(expression);
-  }
-
-  return expression;
-}
-
 function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expression {
-  const simplifiedLeft = simplifyExpression(expression.left);
-  const simplifiedRight = simplifyExpression(expression.right);
-
   if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
-    if (simplifiedLeft.kind === ts.SyntaxKind.TrueKeyword) {
-      return simplifiedRight;
+    if (expression.left.kind === ts.SyntaxKind.TrueKeyword) {
+      return expression.right;
     }
   }
 
   if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
-    if (simplifiedRight.kind === ts.SyntaxKind.TrueKeyword) {
-      return simplifiedLeft;
+    if (expression.right.kind === ts.SyntaxKind.TrueKeyword) {
+      return expression.left;
     }
   }
 
   if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
     if (
-      simplifiedLeft.kind === ts.SyntaxKind.FalseKeyword ||
-      simplifiedRight.kind === ts.SyntaxKind.FalseKeyword
+      expression.left.kind === ts.SyntaxKind.FalseKeyword ||
+      expression.right.kind === ts.SyntaxKind.FalseKeyword
     ) {
       return ts.createFalse();
     }
@@ -55,22 +44,22 @@ function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expressio
 
   if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
     if (
-      simplifiedLeft.kind === ts.SyntaxKind.TrueKeyword ||
-      simplifiedRight.kind === ts.SyntaxKind.TrueKeyword
+      expression.left.kind === ts.SyntaxKind.TrueKeyword ||
+      expression.right.kind === ts.SyntaxKind.TrueKeyword
     ) {
       return ts.createTrue();
     }
   }
 
   if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
-    if (simplifiedLeft.kind === ts.SyntaxKind.FalseKeyword) {
-      return simplifiedRight;
+    if (expression.left.kind === ts.SyntaxKind.FalseKeyword) {
+      return expression.right;
     }
   }
 
   if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
-    if (simplifiedRight.kind === ts.SyntaxKind.FalseKeyword) {
-      return simplifiedLeft;
+    if (expression.right.kind === ts.SyntaxKind.FalseKeyword) {
+      return expression.left;
     }
   }
 
@@ -79,13 +68,13 @@ function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expressio
     expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken
   ) {
     if (
-      (simplifiedLeft.kind === ts.SyntaxKind.TrueKeyword &&
-        simplifiedRight.kind === ts.SyntaxKind.TrueKeyword) ||
-      (simplifiedLeft.kind === ts.SyntaxKind.FalseKeyword &&
-        simplifiedRight.kind === ts.SyntaxKind.FalseKeyword) ||
-      (ts.isIdentifier(simplifiedLeft) &&
-        ts.isIdentifier(simplifiedRight) &&
-        simplifiedLeft.text === simplifiedRight.text)
+      (expression.left.kind === ts.SyntaxKind.TrueKeyword &&
+        expression.right.kind === ts.SyntaxKind.TrueKeyword) ||
+      (expression.left.kind === ts.SyntaxKind.FalseKeyword &&
+        expression.right.kind === ts.SyntaxKind.FalseKeyword) ||
+      (ts.isIdentifier(expression.left) &&
+        ts.isIdentifier(expression.right) &&
+        expression.left.text === expression.right.text)
     ) {
       return ts.createTrue();
     }
@@ -96,16 +85,16 @@ function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expressio
     expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken
   ) {
     if (
-      (simplifiedLeft.kind === ts.SyntaxKind.TrueKeyword &&
-        simplifiedRight.kind === ts.SyntaxKind.FalseKeyword) ||
-      (simplifiedLeft.kind === ts.SyntaxKind.FalseKeyword &&
-        simplifiedRight.kind === ts.SyntaxKind.TrueKeyword)
+      (expression.left.kind === ts.SyntaxKind.TrueKeyword &&
+        expression.right.kind === ts.SyntaxKind.FalseKeyword) ||
+      (expression.left.kind === ts.SyntaxKind.FalseKeyword &&
+        expression.right.kind === ts.SyntaxKind.TrueKeyword)
     ) {
       return ts.createFalse();
     }
   }
 
-  return ts.updateBinary(expression, simplifiedLeft, simplifiedRight);
+  return ts.updateBinary(expression, expression.left, expression.right);
 }
 
 export function getApplicableRefactors(
