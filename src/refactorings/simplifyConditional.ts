@@ -52,7 +52,7 @@ function removeRedundentFalseKeywordInOrExpression(
   return null;
 }
 
-function expressionAlwaysFalse(expression: ts.BinaryExpression): ts.Expression | null {
+function andExpressionIsAlwaysFalse(expression: ts.BinaryExpression): ts.Expression | null {
   if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
     if (
       expression.left.kind === ts.SyntaxKind.FalseKeyword ||
@@ -65,7 +65,7 @@ function expressionAlwaysFalse(expression: ts.BinaryExpression): ts.Expression |
   return null;
 }
 
-function expressionAlwaysTrue(expression: ts.BinaryExpression): ts.Expression | null {
+function orExpressionIsAlwaysTrue(expression: ts.BinaryExpression): ts.Expression | null {
   if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
     if (
       expression.left.kind === ts.SyntaxKind.TrueKeyword ||
@@ -125,14 +125,14 @@ function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expressio
     return removeRedundentTrueKeywordInAndExpressionResult;
   }
 
-  const expressionAlwaysFalseResult = expressionAlwaysFalse(expression);
-  if (expressionAlwaysFalseResult !== null) {
-    return expressionAlwaysFalseResult;
+  const andExpressionIsAlwaysFalseResult = andExpressionIsAlwaysFalse(expression);
+  if (andExpressionIsAlwaysFalseResult !== null) {
+    return andExpressionIsAlwaysFalseResult;
   }
 
-  const expressionAlwaysTrueResult = expressionAlwaysTrue(expression);
-  if (expressionAlwaysTrueResult !== null) {
-    return expressionAlwaysTrueResult;
+  const orExpressionIsAlwaysTrueResult = orExpressionIsAlwaysTrue(expression);
+  if (orExpressionIsAlwaysTrueResult !== null) {
+    return orExpressionIsAlwaysTrueResult;
   }
 
   const removeRedundentFalseKeywordInAndExpressionResult = removeRedundentFalseKeywordInOrExpression(
