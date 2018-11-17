@@ -36,11 +36,15 @@ function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expressio
     if (simplifiedLeft.kind === ts.SyntaxKind.TrueKeyword) {
       return simplifiedRight;
     }
+  }
 
+  if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
     if (simplifiedRight.kind === ts.SyntaxKind.TrueKeyword) {
       return simplifiedLeft;
     }
+  }
 
+  if (expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
     if (
       simplifiedLeft.kind === ts.SyntaxKind.FalseKeyword ||
       simplifiedRight.kind === ts.SyntaxKind.FalseKeyword
@@ -56,11 +60,15 @@ function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expressio
     ) {
       return ts.createTrue();
     }
+  }
 
+  if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
     if (simplifiedLeft.kind === ts.SyntaxKind.FalseKeyword) {
       return simplifiedRight;
     }
+  }
 
+  if (expression.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
     if (simplifiedRight.kind === ts.SyntaxKind.FalseKeyword) {
       return simplifiedLeft;
     }
@@ -81,7 +89,12 @@ function simplifyBinaryExpression(expression: ts.BinaryExpression): ts.Expressio
     ) {
       return ts.createTrue();
     }
+  }
 
+  if (
+    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
+    expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken
+  ) {
     if (
       (simplifiedLeft.kind === ts.SyntaxKind.TrueKeyword &&
         simplifiedRight.kind === ts.SyntaxKind.FalseKeyword) ||
