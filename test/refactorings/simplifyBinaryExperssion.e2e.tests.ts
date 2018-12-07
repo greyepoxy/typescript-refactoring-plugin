@@ -11,48 +11,6 @@ import {
 } from '../../src/refactorings/simplifyBinaryExpression';
 import { validateNoRefactoringOptions, validateRefactoring } from './validateRefactoring';
 
-test(`should be able to simplify 'true && true'`, t => {
-  validateRefactoring(
-    `const some = [||]true && true;`,
-    getApplicableRefactors,
-    getEditsForRefactor,
-    {
-      name: simplifyExpressionRefactoringName,
-      actionName: removeRedundentTrueKeywordInAndExpressionRefactoring.getInfo().name
-    },
-    `const some = true;`,
-    t
-  );
-});
-
-test(`should be able to simplify 'false && true'`, t => {
-  validateRefactoring(
-    `const some = [||]false && true;`,
-    getApplicableRefactors,
-    getEditsForRefactor,
-    {
-      name: simplifyExpressionRefactoringName,
-      actionName: removeRedundentTrueKeywordInAndExpressionRefactoring.getInfo().name
-    },
-    `const some = false;`,
-    t
-  );
-});
-
-test(`should be able to simplify 'true && a'`, t => {
-  validateRefactoring(
-    `const some = [||]true && a;`,
-    getApplicableRefactors,
-    getEditsForRefactor,
-    {
-      name: simplifyExpressionRefactoringName,
-      actionName: removeRedundentTrueKeywordInAndExpressionRefactoring.getInfo().name
-    },
-    `const some = a;`,
-    t
-  );
-});
-
 test(`should be able to simplify 'a && true'`, t => {
   validateRefactoring(
     `const some = [||]a && true;`,
