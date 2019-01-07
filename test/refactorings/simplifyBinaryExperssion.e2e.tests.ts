@@ -25,34 +25,6 @@ test(`should be able to remove redundant true keyword in 'and' expression`, t =>
   );
 });
 
-test(`should be able to simplify 'a && false'`, t => {
-  validateRefactoring(
-    `const some = [||]a && false;`,
-    getApplicableRefactors,
-    getEditsForRefactor,
-    {
-      name: simplifyExpressionRefactoringName,
-      actionName: andExpressionIsAlwaysFalseRefactoring.getInfo().name
-    },
-    `const some = false;`,
-    t
-  );
-});
-
-test(`should be able to simplify 'false && a'`, t => {
-  validateRefactoring(
-    `const some = [||]false && a;`,
-    getApplicableRefactors,
-    getEditsForRefactor,
-    {
-      name: simplifyExpressionRefactoringName,
-      actionName: andExpressionIsAlwaysFalseRefactoring.getInfo().name
-    },
-    `const some = false;`,
-    t
-  );
-});
-
 test(`should be able to remove redundant false keyword in 'or' expression`, t => {
   validateRefactoring(
     `const some = [||]a || false;`,
@@ -67,35 +39,21 @@ test(`should be able to remove redundant false keyword in 'or' expression`, t =>
   );
 });
 
-test(`should be able to simplify 'a || true'`, t => {
+test(`should be able to simplify always false expression to false`, t => {
   validateRefactoring(
-    `const some = [||]a || true;`,
+    `const some = [||]a && false;`,
     getApplicableRefactors,
     getEditsForRefactor,
     {
       name: simplifyExpressionRefactoringName,
-      actionName: orExpressionIsAlwaysTrueRefactoring.getInfo().name
+      actionName: andExpressionIsAlwaysFalseRefactoring.getInfo().name
     },
-    `const some = true;`,
+    `const some = false;`,
     t
   );
 });
 
-test(`should be able to simplify '(true && false) || true'`, t => {
-  validateRefactoring(
-    `const some = [||](true && false) || true;`,
-    getApplicableRefactors,
-    getEditsForRefactor,
-    {
-      name: simplifyExpressionRefactoringName,
-      actionName: orExpressionIsAlwaysTrueRefactoring.getInfo().name
-    },
-    `const some = true;`,
-    t
-  );
-});
-
-test(`should be able to simplify 'true || a'`, t => {
+test(`should be able to simplify always true expression to true`, t => {
   validateRefactoring(
     `const some = [||]true || a;`,
     getApplicableRefactors,

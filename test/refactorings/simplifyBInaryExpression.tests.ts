@@ -3,6 +3,8 @@ import * as ts from 'typescript/lib/tsserverlibrary';
 import { getNodeText } from '../../src/refactorings/printNode';
 import { RefactoringAction } from '../../src/refactorings/refactoring';
 import {
+  andExpressionIsAlwaysFalseRefactoring,
+  orExpressionIsAlwaysTrueRefactoring,
   removeRedundentFalseKeywordInOrExpressionRefactoring,
   removeRedundentTrueKeywordInAndExpressionRefactoring
 } from '../../src/refactorings/simplifyBinaryExpression';
@@ -109,4 +111,58 @@ test(
     ts.SyntaxKind.LessThanLessThanToken,
     ts.createIdentifier('a')
   )
+);
+
+const validateAndExpressionIsAlwaysFalseRefactoringMacro = getValidateSingleNodeRefactoringMacro(
+  andExpressionIsAlwaysFalseRefactoring
+);
+
+test(
+  validateAndExpressionIsAlwaysFalseRefactoringMacro,
+  ts.createBinary(
+    ts.createIdentifier('a'),
+    ts.SyntaxKind.AmpersandAmpersandToken,
+    ts.createFalse()
+  ),
+  ts.createFalse()
+);
+
+test(
+  validateAndExpressionIsAlwaysFalseRefactoringMacro,
+  ts.createBinary(
+    ts.createFalse(),
+    ts.SyntaxKind.AmpersandAmpersandToken,
+    ts.createIdentifier('a')
+  ),
+  ts.createFalse()
+);
+
+const validateOrExpressionIsAlwaysTrueRefactoringMacro = getValidateSingleNodeRefactoringMacro(
+  orExpressionIsAlwaysTrueRefactoring
+);
+
+test(
+  validateOrExpressionIsAlwaysTrueRefactoringMacro,
+  ts.createBinary(ts.createIdentifier('a'), ts.SyntaxKind.BarBarToken, ts.createTrue()),
+  ts.createTrue()
+);
+
+test(
+  validateOrExpressionIsAlwaysTrueRefactoringMacro,
+  ts.createBinary(ts.createTrue(), ts.SyntaxKind.BarBarToken, ts.createIdentifier('a')),
+  ts.createTrue()
+);
+
+test(
+  validateOrExpressionIsAlwaysTrueRefactoringMacro,
+  ts.createBinary(
+    ts.createBinary(
+      ts.createIdentifier('a'),
+      ts.SyntaxKind.AmpersandAmpersandToken,
+      ts.createFalse()
+    ),
+    ts.SyntaxKind.BarBarToken,
+    ts.createTrue()
+  ),
+  ts.createTrue()
 );
