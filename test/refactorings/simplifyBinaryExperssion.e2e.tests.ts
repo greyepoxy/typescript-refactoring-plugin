@@ -11,7 +11,7 @@ import {
 } from '../../src/refactorings/simplifyBinaryExpression';
 import { validateNoRefactoringOptions, validateRefactoring } from './validateRefactoring';
 
-test(`should be able to remove redundant true keyword in and expression`, t => {
+test(`should be able to remove redundant true keyword in 'and' expression`, t => {
   validateRefactoring(
     `const some = [||]a && true;`,
     getApplicableRefactors,
@@ -53,7 +53,7 @@ test(`should be able to simplify 'false && a'`, t => {
   );
 });
 
-test(`should be able to simplify 'a || false'`, t => {
+test(`should be able to remove redundant false keyword in 'or' expression`, t => {
   validateRefactoring(
     `const some = [||]a || false;`,
     getApplicableRefactors,
@@ -63,34 +63,6 @@ test(`should be able to simplify 'a || false'`, t => {
       actionName: removeRedundentFalseKeywordInOrExpressionRefactoring.getInfo().name
     },
     `const some = a;`,
-    t
-  );
-});
-
-test(`should be able to simplify 'false || a'`, t => {
-  validateRefactoring(
-    `const some = [||]false || a;`,
-    getApplicableRefactors,
-    getEditsForRefactor,
-    {
-      name: simplifyExpressionRefactoringName,
-      actionName: removeRedundentFalseKeywordInOrExpressionRefactoring.getInfo().name
-    },
-    `const some = a;`,
-    t
-  );
-});
-
-test(`should be able to simplify '<something> || false'`, t => {
-  validateRefactoring(
-    `const some = [||](5 < a) || false;`,
-    getApplicableRefactors,
-    getEditsForRefactor,
-    {
-      name: simplifyExpressionRefactoringName,
-      actionName: removeRedundentFalseKeywordInOrExpressionRefactoring.getInfo().name
-    },
-    `const some = (5 < a);`,
     t
   );
 });
