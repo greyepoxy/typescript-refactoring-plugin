@@ -67,7 +67,7 @@ test(`should be able to simplify always true expression to true`, t => {
   );
 });
 
-test(`should be able to simplify 'a == a' tautology`, t => {
+test(`should be able to simplify always true tautology to true`, t => {
   validateRefactoring(
     `const some = [||]a == a;`,
     getApplicableRefactors,
