@@ -191,3 +191,15 @@ test(
   ),
   ts.createTrue()
 );
+
+test(
+  validateEqualityExpressionIsAlwaysTrueRefactoringMacro,
+  ts.createBinary(ts.createTrue(), ts.SyntaxKind.EqualsEqualsEqualsToken, ts.createTrue()),
+  ts.createTrue()
+);
+
+test(
+  validateEqualityExpressionIsAlwaysTrueRefactoringMacro,
+  ts.createBinary(ts.createFalse(), ts.SyntaxKind.EqualsEqualsEqualsToken, ts.createFalse()),
+  ts.createTrue()
+);
