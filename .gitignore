@@ -5,6 +5,8 @@ node_modules/
 .DS_Store
 *.log
 log.txt
+.nyc_output/
+coverage/
 
 test-workspace
 lib
