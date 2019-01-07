@@ -4,8 +4,9 @@
   "description": "A typescript refactoring language service plugin",
   "main": "lib/src/index.js",
   "scripts": {
-    "build": "run-s compile check test",
+    "build": "run-s compile check coverage",
     "compile": "tsc -p .",
+    "coverage": "nyc npm test",
     "check": "tslint -p .",
     "fix": "run-s \"check -- --fix\"",
     "test": "ava",
@@ -33,6 +34,7 @@
     "@types/node": "^10.12.2",
     "ava": "^0.25.0",
     "npm-run-all": "^4.1.3",
+    "nyc": "^13.1.0",
     "prettier": "^1.14.3",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.15.0",
@@ -56,5 +58,11 @@
       "!lib/**/log.txt"
     ],
     "concurrency": 5
+  },
+  "nyc": {
+    "reporter": [
+      "html",
+      "text-summary"
+    ]
   }
 }

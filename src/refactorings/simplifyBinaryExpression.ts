@@ -1,5 +1,6 @@
 import * as ts from 'typescript/lib/tsserverlibrary';
 import { Logger } from '../logger';
+import { getNodeText } from './printNode';
 import { RefactoringAction, RefactoringResult } from './refactoring';
 import { tryGetClosestBinaryExpression } from './tryGetTargetExpression';
 
@@ -252,12 +253,4 @@ export function getEditsForRefactor(
     renameFilename: undefined,
     renameLocation: undefined
   };
-}
-
-function getNodeText(node: ts.Node, sourceFile: ts.SourceFile): string {
-  const nodePrinter = ts.createPrinter();
-
-  const newText = nodePrinter.printNode(ts.EmitHint.Unspecified, node, sourceFile);
-
-  return newText;
 }
