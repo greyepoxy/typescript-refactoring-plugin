@@ -1,6 +1,7 @@
 import { test } from 'ava';
 import {
   andExpressionIsAlwaysFalseRefactoring,
+  equalityExpressionIsAlwaysFalseRefactoring,
   equalityExpressionIsAlwaysTrueRefactoring,
   getApplicableRefactors,
   getEditsForRefactor,
@@ -77,6 +78,20 @@ test(`should be able to simplify always true tautology to true`, t => {
       actionName: equalityExpressionIsAlwaysTrueRefactoring.getInfo().name
     },
     `const some = true;`,
+    t
+  );
+});
+
+test(`should be able to simplify always false tautology to false`, t => {
+  validateRefactoring(
+    `const some = [||]true == false;`,
+    getApplicableRefactors,
+    getEditsForRefactor,
+    {
+      name: simplifyExpressionRefactoringName,
+      actionName: equalityExpressionIsAlwaysFalseRefactoring.getInfo().name
+    },
+    `const some = false;`,
     t
   );
 });

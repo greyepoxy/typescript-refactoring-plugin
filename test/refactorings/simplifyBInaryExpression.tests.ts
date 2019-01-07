@@ -4,6 +4,7 @@ import { getNodeText } from '../../src/refactorings/printNode';
 import { RefactoringAction } from '../../src/refactorings/refactoring';
 import {
   andExpressionIsAlwaysFalseRefactoring,
+  equalityExpressionIsAlwaysFalseRefactoring,
   equalityExpressionIsAlwaysTrueRefactoring,
   orExpressionIsAlwaysTrueRefactoring,
   removeRedundentFalseKeywordInOrExpressionRefactoring,
@@ -202,4 +203,20 @@ test(
   validateEqualityExpressionIsAlwaysTrueRefactoringMacro,
   ts.createBinary(ts.createFalse(), ts.SyntaxKind.EqualsEqualsEqualsToken, ts.createFalse()),
   ts.createTrue()
+);
+
+const validateEqualityExpressionIsAlwaysFalseRefactoringMacro = getValidateSingleNodeRefactoringMacro(
+  equalityExpressionIsAlwaysFalseRefactoring
+);
+
+test(
+  validateEqualityExpressionIsAlwaysFalseRefactoringMacro,
+  ts.createBinary(ts.createFalse(), ts.SyntaxKind.EqualsEqualsEqualsToken, ts.createTrue()),
+  ts.createFalse()
+);
+
+test(
+  validateEqualityExpressionIsAlwaysFalseRefactoringMacro,
+  ts.createBinary(ts.createTrue(), ts.SyntaxKind.EqualsEqualsEqualsToken, ts.createFalse()),
+  ts.createFalse()
 );
