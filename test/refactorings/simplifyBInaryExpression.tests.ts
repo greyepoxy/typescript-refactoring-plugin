@@ -49,3 +49,9 @@ test(
   ts.createBinary(ts.createTrue(), ts.SyntaxKind.AmpersandAmpersandToken, ts.createIdentifier('a')),
   ts.createIdentifier('a')
 );
+
+test(
+  validateRedundentTrueKeywordInAndExpressionRefactoringMacro,
+  ts.createBinary(ts.createIdentifier('a'), ts.SyntaxKind.AmpersandAmpersandToken, ts.createTrue()),
+  ts.createIdentifier('a')
+);

@@ -11,7 +11,7 @@ import {
 } from '../../src/refactorings/simplifyBinaryExpression';
 import { validateNoRefactoringOptions, validateRefactoring } from './validateRefactoring';
 
-test(`should be able to simplify 'a && true'`, t => {
+test(`should be able to remove redundant true keyword in and expression`, t => {
   validateRefactoring(
     `const some = [||]a && true;`,
     getApplicableRefactors,
